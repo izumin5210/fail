@@ -16,6 +16,8 @@ Better error handling solution especially for application server.
 - Reportability (for an integration with error reporting service)
 
 
+This package was forked from [`creasty/apperrors`](https://github.com/izumin5210/rrr).
+
 Why
 ---
 
