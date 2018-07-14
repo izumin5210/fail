@@ -1,4 +1,4 @@
-package apperrors
+package rrr
 
 // Option annotates an errors.
 type Option func(*Error)

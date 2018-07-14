@@ -1,14 +1,14 @@
-apperrors
+rrr
 =========
 
-[![Build Status](https://travis-ci.org/creasty/apperrors.svg?branch=master)](https://travis-ci.org/creasty/apperrors)
-[![codecov](https://codecov.io/gh/creasty/apperrors/branch/master/graph/badge.svg)](https://codecov.io/gh/creasty/apperrors)
-[![GoDoc](https://godoc.org/github.com/creasty/apperrors?status.svg)](https://godoc.org/github.com/creasty/apperrors)
-[![License](https://img.shields.io/github/license/creasty/apperrors.svg)](./LICENSE)
+[![Build Status](https://travis-ci.org/izumin5210/rrr.svg?branch=master)](https://travis-ci.org/izumin5210/rrr)
+[![codecov](https://codecov.io/gh/izumin5210/rrr/branch/master/graph/badge.svg)](https://codecov.io/gh/izumin5210/rrr)
+[![GoDoc](https://godoc.org/github.com/izumin5210/rrr?status.svg)](https://godoc.org/github.com/izumin5210/rrr)
+[![License](https://img.shields.io/github/license/izumin5210/rrr.svg)](./LICENSE)
 
 Better error handling solution especially for application server.
 
-`apperrors` provides contextual metadata to errors.
+`rrr` provides contextual metadata to errors.
 
 - Stack trace
 - Additional information
@@ -24,7 +24,7 @@ Because of this lack of contextual metadata, debugging is a pain in the ass.
 
 ### How different from [pkg/errors](https://github.com/pkg/errors)
 
-:memo: `apperrors` supports `pkg/errors`. It reuses `pkg/errors`'s stack trace data of the innermost (root) error, and converts into `apperrors`'s data type.
+:memo: `rrr` supports `pkg/errors`. It reuses `pkg/errors`'s stack trace data of the innermost (root) error, and converts into `rrr`'s data type.
 
 TBA
 
@@ -60,7 +60,7 @@ It returns nil if err is nil
 ```go
 ok := emailRegexp.MatchString("invalid#email.addr")
 if !ok {
-	return apperrors.New("invalid email address")
+	return rrr.New("invalid email address")
 }
 ```
 
@@ -69,7 +69,7 @@ if !ok {
 ```go
 _, err := ioutil.ReadAll(r)
 if err != nil {
-	return apperrors.Wrap(err)
+	return rrr.Wrap(err)
 }
 ```
 
@@ -113,11 +113,11 @@ WithParam(s) annotates with key-value pairs.
 ```go
 _, err := ioutil.ReadAll(r)
 if err != nil {
-	return apperrors.Wrap(
+	return rrr.Wrap(
 		err,
-		apperrors.WithMessage("read failed"),
-		apperrors.WithStatusCode(http.StatusBadRequest),
-		apperrors.WithReport(),
+		rrr.WithMessage("read failed"),
+		rrr.WithStatusCode(http.StatusBadRequest),
+		rrr.WithReport(),
 	)
 }
 ```
@@ -130,7 +130,7 @@ Extract context from an error
 func Unwrap(err error) *Error
 ```
 
-Unwrap extracts an underlying \*apperrors.Error from an error.  
+Unwrap extracts an underlying \*rrr.Error from an error.  
 If the given error isn't eligible for retriving context from,
 it returns nil
 
@@ -152,7 +152,7 @@ type Error struct {
 
 ### Example
 
-Here's a minimum executable example describing how `apperrors` works.
+Here's a minimum executable example describing how `rrr` works.
 
 ```go
 package main
@@ -160,7 +160,7 @@ package main
 import (
 	"errors"
 
-	"github.com/creasty/apperrors"
+	"github.com/izumin5210/rrr"
 	"github.com/k0kubun/pp"
 )
 
@@ -168,13 +168,13 @@ func errFunc0() error {
 	return errors.New("this is the root cause")
 }
 func errFunc1() error {
-	return apperrors.Wrap(errFunc0())
+	return rrr.Wrap(errFunc0())
 }
 func errFunc2() error {
-	return apperrors.Wrap(errFunc1(), apperrors.WithMessage("fucked up!"))
+	return rrr.Wrap(errFunc1(), rrr.WithMessage("fucked up!"))
 }
 func errFunc3() error {
-	return apperrors.Wrap(errFunc2(), apperrors.WithStatusCode(500), apperrors.WithReport())
+	return rrr.Wrap(errFunc2(), rrr.WithStatusCode(500), rrr.WithReport())
 }
 
 func main() {
@@ -185,18 +185,18 @@ func main() {
 
 ```sh-session
 $ go run main.go
-&apperrors.Error{
+&rrr.Error{
   Err:        &errors.errorString{s: "this is the root cause"},
   Message:    "fucked up!",
   StatusCode: 500,
   Report:     true,
-  StackTrace: apperrors.StackTrace{
-    apperrors.Frame{Func: "errFunc1", File: "main.go", Line: 13},
-    apperrors.Frame{Func: "errFunc2", File: "main.go", Line: 16},
-    apperrors.Frame{Func: "errFunc3", File: "main.go", Line: 19},
-    apperrors.Frame{Func: "main", File: "main.go", Line: 23},
-    apperrors.Frame{Func: "main", File: "runtime/proc.go", Line: 194},
-    apperrors.Frame{Func: "goexit", File: "runtime/asm_amd64.s", Line: 2198},
+  StackTrace: rrr.StackTrace{
+    rrr.Frame{Func: "errFunc1", File: "main.go", Line: 13},
+    rrr.Frame{Func: "errFunc2", File: "main.go", Line: 16},
+    rrr.Frame{Func: "errFunc3", File: "main.go", Line: 19},
+    rrr.Frame{Func: "main", File: "main.go", Line: 23},
+    rrr.Frame{Func: "main", File: "runtime/proc.go", Line: 194},
+    rrr.Frame{Func: "goexit", File: "runtime/asm_amd64.s", Line: 2198},
   },
 }
 ```
@@ -211,8 +211,8 @@ package middleware
 import (
 	"net/http"
 
-	"github.com/creasty/apperrors"
-	"github.com/creasty/gin-contrib/readbody"
+	"github.com/izumin5210/rrr"
+	"github.com/izumin5210/gin-contrib/readbody"
 	"github.com/gin-gonic/gin"
 
 	// Only for example
@@ -223,11 +223,11 @@ import (
 // ReportError handles an error, changes status code based on the error,
 // and reports to an external service if necessary
 func ReportError(c *gin.Context, err error) {
-	appErr := apperrors.Unwrap(err)
+	appErr := rrr.Unwrap(err)
 	if appErr == nil {
 		// As it's a "raw" error, `StackTrace` field left unset.
 		// And it should be always reported
-		appErr = &apperrors.Error{
+		appErr = &rrr.Error{
 			Err:    err,
 			Report: true,
 		}
@@ -253,7 +253,7 @@ func ReportError(c *gin.Context, err error) {
 	}
 }
 
-func convertAppError(err *apperrors.Error) {
+func convertAppError(err *rrr.Error) {
 	// If the error is from ORM and it says "no record found,"
 	// override status code to 404
 	if err.Err == gorm.ErrRecordNotFound {
@@ -262,7 +262,7 @@ func convertAppError(err *apperrors.Error) {
 	}
 }
 
-func uploadAppError(c *gin.Context, err *apperrors.Error) {
+func uploadAppError(c *gin.Context, err *rrr.Error) {
 	// By using readbody, you can retrive an original request body
 	// even when c.Request.Body had been read
 	body := readbody.Get(c)
@@ -277,7 +277,7 @@ And then you can use like as follows.
 
 ```go
 r := gin.Default()
-r.Use(readbody.Recorder()) // Use github.com/creasty/gin-contrib/readbody
+r.Use(readbody.Recorder()) // Use github.com/izumin5210/gin-contrib/readbody
 
 r.GET("/test", func(c *gin.Context) {
 	err := doSomethingReallyComplex()
