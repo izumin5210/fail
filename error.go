@@ -17,6 +17,8 @@ type Error struct {
 	Report bool
 	// Tags represents tags of the error which is classified errors.
 	Tags []string
+	// Params is an annotated parameters of the error.
+	Params H
 	// StackTrace is a stack trace of the original error
 	// from the point where it was created
 	StackTrace StackTrace
@@ -58,6 +60,7 @@ func (e *Error) Copy() *Error {
 		StatusCode: e.StatusCode,
 		Report:     e.Report,
 		Tags:       e.Tags,
+		Params:     e.Params,
 		StackTrace: e.StackTrace,
 	}
 }

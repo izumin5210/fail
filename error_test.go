@@ -152,6 +152,52 @@ func TestWithTags(t *testing.T) {
 	})
 }
 
+func TestWithParams(t *testing.T) {
+	t.Run("nil", func(t *testing.T) {
+		err := Wrap(nil, WithParams(H{"foo": 1, "bar": "baz"}))
+		assert.Equal(t, nil, err)
+	})
+
+	t.Run("bare", func(t *testing.T) {
+		err0 := errors.New("original")
+
+		err1 := Wrap(err0, WithParams(H{"foo": 1, "bar": "baz"}))
+
+		appErr := Unwrap(err1)
+		assert.Equal(t, err0, appErr.Err)
+		assert.Equal(t, H{"foo": 1, "bar": "baz"}, appErr.Params)
+	})
+
+	t.Run("short", func(t *testing.T) {
+		err0 := errors.New("original")
+
+		err1 := Wrap(err0, WithParam("foo", 1))
+
+		appErr := Unwrap(err1)
+		assert.Equal(t, err0, appErr.Err)
+		assert.Equal(t, H{"foo": 1}, appErr.Params)
+	})
+
+	t.Run("already wrapped", func(t *testing.T) {
+		err0 := errors.New("original")
+
+		err1 := Wrap(err0, WithParams(H{"foo": 1, "bar": "baz"}))
+		err2 := Wrap(err1, WithParams(H{"qux": true, "foo": "quux"}))
+
+		{
+			appErr := Unwrap(err1)
+			assert.Equal(t, err0, appErr.Err)
+			assert.Equal(t, H{"foo": 1, "bar": "baz"}, appErr.Params)
+		}
+
+		{
+			appErr := Unwrap(err2)
+			assert.Equal(t, err0, appErr.Err)
+			assert.Equal(t, H{"foo": "quux", "bar": "baz", "qux": true}, appErr.Params)
+		}
+	})
+}
+
 func TestWithReport(t *testing.T) {
 	t.Run("nil", func(t *testing.T) {
 		err := Wrap(nil, WithReport())

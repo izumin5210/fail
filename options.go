@@ -30,3 +30,15 @@ func WithTags(tags ...string) Option {
 		err.Tags = append(err.Tags, tags...)
 	}
 }
+
+// WithParam annotates with a key-value pair.
+func WithParam(key string, value interface{}) Option {
+	return WithParams(H{key: value})
+}
+
+// WithParams annotates with key-value pairs.
+func WithParams(h H) Option {
+	return func(err *Error) {
+		err.Params = err.Params.Merge(h)
+	}
+}
