@@ -1,4 +1,4 @@
-package apperrors
+package rrr
 
 import (
 	"testing"

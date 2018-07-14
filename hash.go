@@ -1,4 +1,4 @@
-package apperrors
+package rrr
 
 // H represents a JSON-like key-value object.
 type H map[string]interface{}
