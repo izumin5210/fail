@@ -101,6 +101,13 @@ func WithTags(tags ...string) Option
 
 WithTags annotates with tags.
 
+```go
+func WithParam(key string, value interface{}) Option
+func WithParams(h H) Option
+```
+
+WithParam(s) annotates with key-value pairs.
+
 ### Example: Adding all contexts
 
 ```go
