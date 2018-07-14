@@ -23,3 +23,10 @@ func WithReport() Option {
 		err.Report = true
 	}
 }
+
+// WithTags annotates with tags.
+func WithTags(tags ...string) Option {
+	return func(err *Error) {
+		err.Tags = append(err.Tags, tags...)
+	}
+}

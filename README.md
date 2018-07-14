@@ -95,6 +95,12 @@ func WithReport() Option
 
 WithReport annotates with the reportability.
 
+```go
+func WithTags(tags ...string) Option
+```
+
+WithTags annotates with tags.
+
 ### Example: Adding all contexts
 
 ```go
