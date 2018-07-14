@@ -78,36 +78,33 @@ Annotate an error
 -----------------
 
 ```go
-func WithMessage(err error, msg string) error
+func WithMessage(msg string) Option
 ```
 
-WithMessage wraps the error and annotates with the message.  
-If err is nil, it returns nil
+WithMessage annotates with the message.
 
 ```go
-func WithStatusCode(err error, code int) error
+func WithStatusCode(code int) Option
 ```
 
-WithStatusCode wraps the error and annotates with the status code.  
-If err is nil, it returns nil
+WithStatusCode annotates with the status code.
 
 ```go
-func WithReport(err error) error
+func WithReport() Option
 ```
 
-WithReport wraps the error and annotates with the reportability.  
-If err is nil, it returns nil
+WithReport annotates with the reportability.
 
 ### Example: Adding all contexts
 
 ```go
 _, err := ioutil.ReadAll(r)
 if err != nil {
-	return apperrors.WithReport(
-		apperrors.WithStatusCode(
-			apperrors.WithMessage(err, "read failed"),
-			http.StatusBadRequest
-		)
+	return apperrors.Wrap(
+		err,
+		apperrors.WithMessage("read failed"),
+		apperrors.WithStatusCode(http.StatusBadRequest),
+		apperrors.WithReport(),
 	)
 }
 ```
@@ -161,10 +158,10 @@ func errFunc1() error {
 	return apperrors.Wrap(errFunc0())
 }
 func errFunc2() error {
-	return apperrors.WithMessage(errFunc1(), "fucked up!")
+	return apperrors.Wrap(errFunc1(), apperrors.WithMessage("fucked up!"))
 }
 func errFunc3() error {
-	return apperrors.WithReport(apperrors.WithStatusCode(errFunc2(), 500))
+	return apperrors.Wrap(errFunc2(), apperrors.WithStatusCode(500), apperrors.WithReport())
 }
 
 func main() {

@@ -32,14 +32,14 @@ func TestErrorf(t *testing.T) {
 
 func TestWithMessage(t *testing.T) {
 	t.Run("nil", func(t *testing.T) {
-		err := WithMessage(nil, "message")
+		err := Wrap(nil, WithMessage("message"))
 		assert.Equal(t, nil, err)
 	})
 
 	t.Run("bare", func(t *testing.T) {
 		err0 := errors.New("original")
 
-		err1 := WithMessage(err0, "message")
+		err1 := Wrap(err0, WithMessage("message"))
 		assert.Equal(t, "message", err1.Error())
 
 		appErr := Unwrap(err1)
@@ -55,7 +55,7 @@ func TestWithMessage(t *testing.T) {
 			Message:    "message 1",
 			StatusCode: 400,
 		}
-		err2 := WithMessage(err1, "message 2")
+		err2 := Wrap(err1, WithMessage("message 2"))
 		assert.Equal(t, "message 2", err2.Error())
 
 		{
@@ -76,14 +76,14 @@ func TestWithMessage(t *testing.T) {
 
 func TestWithStatusCode(t *testing.T) {
 	t.Run("nil", func(t *testing.T) {
-		err := WithStatusCode(nil, 200)
+		err := Wrap(nil, WithStatusCode(200))
 		assert.Equal(t, nil, err)
 	})
 
 	t.Run("bare", func(t *testing.T) {
 		err0 := errors.New("original")
 
-		err1 := WithStatusCode(err0, 200)
+		err1 := Wrap(err0, WithStatusCode(200))
 
 		appErr := Unwrap(err1)
 		assert.Equal(t, err0, appErr.Err)
@@ -98,7 +98,7 @@ func TestWithStatusCode(t *testing.T) {
 			Message:    "message 1",
 			StatusCode: 400,
 		}
-		err2 := WithStatusCode(err1, 500)
+		err2 := Wrap(err1, WithStatusCode(500))
 
 		{
 			appErr := Unwrap(err1)
@@ -118,14 +118,14 @@ func TestWithStatusCode(t *testing.T) {
 
 func TestWithReport(t *testing.T) {
 	t.Run("nil", func(t *testing.T) {
-		err := WithReport(nil)
+		err := Wrap(nil, WithReport())
 		assert.Equal(t, nil, err)
 	})
 
 	t.Run("bare", func(t *testing.T) {
 		err0 := errors.New("original")
 
-		err1 := WithReport(err0)
+		err1 := Wrap(err0, WithReport())
 
 		appErr := Unwrap(err1)
 		assert.Equal(t, err0, appErr.Err)
@@ -135,8 +135,8 @@ func TestWithReport(t *testing.T) {
 	t.Run("already wrapped", func(t *testing.T) {
 		err0 := errors.New("original")
 
-		err1 := WithReport(err0)
-		err2 := WithReport(err1)
+		err1 := Wrap(err0, WithReport())
+		err2 := Wrap(err1, WithReport())
 
 		{
 			appErr := Unwrap(err1)
@@ -259,5 +259,5 @@ func errFunc3() error {
 	return Wrap(errFunc2())
 }
 func errFunc4() error {
-	return WithReport(WithStatusCode(WithMessage(errFunc3(), "e4"), 500))
+	return Wrap(errFunc3(), WithMessage("e4"), WithStatusCode(500), WithReport())
 }

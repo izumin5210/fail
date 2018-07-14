@@ -61,19 +61,25 @@ func (e *Error) Copy() *Error {
 
 // Wrap returns an error annotated with a stack trace from the point it was called.
 // It returns nil if err is nil
-func Wrap(err error) error {
+func Wrap(err error, opts ...Option) error {
 	if err == nil {
 		return nil
 	}
 
-	return wrap(err)
+	appErr := wrap(err)
+
+	for _, f := range opts {
+		f(appErr)
+	}
+
+	return appErr
 }
 
 func wrap(err error) *Error {
 	pkgErr := extractPkgError(err)
 
 	if appErr, ok := pkgErr.Err.(*Error); ok {
-		return appErr
+		return appErr.Copy()
 	}
 
 	stackTrace := pkgErr.StackTrace
@@ -97,40 +103,4 @@ func Unwrap(err error) *Error {
 	}
 
 	return nil
-}
-
-// WithMessage wraps the error and annotates with the message.
-// If err is nil, it returns nil
-func WithMessage(err error, msg string) error {
-	if err == nil {
-		return nil
-	}
-
-	appErr := wrap(err).Copy()
-	appErr.Message = msg
-	return appErr
-}
-
-// WithStatusCode wraps the error and annotates with the status code.
-// If err is nil, it returns nil
-func WithStatusCode(err error, code int) error {
-	if err == nil {
-		return nil
-	}
-
-	appErr := wrap(err).Copy()
-	appErr.StatusCode = code
-	return appErr
-}
-
-// WithReport wraps the error and annotates with the reportability.
-// If err is nil, it returns nil
-func WithReport(err error) error {
-	if err == nil {
-		return nil
-	}
-
-	appErr := wrap(err).Copy()
-	appErr.Report = true
-	return appErr
 }
