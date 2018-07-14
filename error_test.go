@@ -116,6 +116,42 @@ func TestWithStatusCode(t *testing.T) {
 	})
 }
 
+func TestWithTags(t *testing.T) {
+	t.Run("nil", func(t *testing.T) {
+		err := Wrap(nil, WithTags("http", "notice_only"))
+		assert.Equal(t, nil, err)
+	})
+
+	t.Run("bare", func(t *testing.T) {
+		err0 := errors.New("original")
+
+		err1 := Wrap(err0, WithTags("http", "notice_only"))
+
+		appErr := Unwrap(err1)
+		assert.Equal(t, err0, appErr.Err)
+		assert.Equal(t, []string{"http", "notice_only"}, appErr.Tags)
+	})
+
+	t.Run("already wrapped", func(t *testing.T) {
+		err0 := errors.New("original")
+
+		err1 := Wrap(err0, WithTags("http", "notice_only"))
+		err2 := Wrap(err1, WithTags("security"))
+
+		{
+			appErr := Unwrap(err1)
+			assert.Equal(t, err0, appErr.Err)
+			assert.Equal(t, []string{"http", "notice_only"}, appErr.Tags)
+		}
+
+		{
+			appErr := Unwrap(err2)
+			assert.Equal(t, err0, appErr.Err)
+			assert.Equal(t, []string{"http", "notice_only", "security"}, appErr.Tags)
+		}
+	})
+}
+
 func TestWithReport(t *testing.T) {
 	t.Run("nil", func(t *testing.T) {
 		err := Wrap(nil, WithReport())
