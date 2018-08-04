@@ -1,7 +1,7 @@
 fail
 =========
 
-[![Build Status](https://travis-ci.org/izumin5210/fail.svg?branch=master)](https://travis-ci.org/izumin5210/fail)
+[![Build Status](https://travis-ci.com/izumin5210/fail.svg?branch=master)](https://travis-ci.com/izumin5210/fail)
 [![codecov](https://codecov.io/gh/izumin5210/fail/branch/master/graph/badge.svg)](https://codecov.io/gh/izumin5210/fail)
 [![GoDoc](https://godoc.org/github.com/izumin5210/fail?status.svg)](https://godoc.org/github.com/izumin5210/fail)
 [![License](https://img.shields.io/github/license/izumin5210/fail.svg)](./LICENSE)
