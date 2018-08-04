@@ -12,7 +12,7 @@ type Error struct {
 	// Message is an annotated description of the error
 	Message string
 	// StatusCode is a status code that is desired to be used for a HTTP response
-	StatusCode int
+	StatusCode interface{}
 	// Report represents whether the error should be reported to administrators
 	Report bool
 	// Tags represents tags of the error which is classified errors.
