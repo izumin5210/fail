@@ -11,7 +11,7 @@ type Error struct {
 	Err error
 	// Message is an annotated description of the error
 	Message string
-	// StatusCode is a status code that is desired to be used for a HTTP response
+	// StatusCode is a status code that is desired to be contained in responses, such as HTTP Status code.
 	StatusCode interface{}
 	// Report represents whether the error should be reported to administrators
 	Report bool
