@@ -4,6 +4,8 @@ fail
 [![Build Status](https://travis-ci.com/izumin5210/fail.svg?branch=master)](https://travis-ci.com/izumin5210/fail)
 [![codecov](https://codecov.io/gh/izumin5210/fail/branch/master/graph/badge.svg)](https://codecov.io/gh/izumin5210/fail)
 [![GoDoc](https://godoc.org/github.com/izumin5210/fail?status.svg)](https://godoc.org/github.com/izumin5210/fail)
+[![Go project version](https://badge.fury.io/go/github.com%2Fizumin5210%2Ffail.svg)](https://badge.fury.io/go/github.com%2Fizumin5210%2Ffail)
+[![Go Report Card](https://goreportcard.com/badge/github.com/izumin5210/fail)](https://goreportcard.com/report/github.com/izumin5210/fail)
 [![License](https://img.shields.io/github/license/izumin5210/fail.svg)](./LICENSE)
 
 Better error handling solution especially for application server.
