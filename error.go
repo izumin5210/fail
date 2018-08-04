@@ -1,4 +1,4 @@
-package rrr
+package fail
 
 import (
 	"errors"
@@ -100,7 +100,7 @@ func wrap(err error) *Error {
 	}
 }
 
-// Unwrap extracts an underlying *rrr.Error from an error.
+// Unwrap extracts an underlying *fail.Error from an error.
 // If the given error isn't eligible for retriving context from,
 // it returns nil
 func Unwrap(err error) *Error {

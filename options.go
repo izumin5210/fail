@@ -1,4 +1,4 @@
-package rrr
+package fail
 
 // Option annotates an errors.
 type Option func(*Error)

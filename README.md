@@ -1,14 +1,14 @@
-rrr
+fail
 =========
 
-[![Build Status](https://travis-ci.org/izumin5210/rrr.svg?branch=master)](https://travis-ci.org/izumin5210/rrr)
-[![codecov](https://codecov.io/gh/izumin5210/rrr/branch/master/graph/badge.svg)](https://codecov.io/gh/izumin5210/rrr)
-[![GoDoc](https://godoc.org/github.com/izumin5210/rrr?status.svg)](https://godoc.org/github.com/izumin5210/rrr)
-[![License](https://img.shields.io/github/license/izumin5210/rrr.svg)](./LICENSE)
+[![Build Status](https://travis-ci.org/izumin5210/fail.svg?branch=master)](https://travis-ci.org/izumin5210/fail)
+[![codecov](https://codecov.io/gh/izumin5210/fail/branch/master/graph/badge.svg)](https://codecov.io/gh/izumin5210/fail)
+[![GoDoc](https://godoc.org/github.com/izumin5210/fail?status.svg)](https://godoc.org/github.com/izumin5210/fail)
+[![License](https://img.shields.io/github/license/izumin5210/fail.svg)](./LICENSE)
 
 Better error handling solution especially for application server.
 
-`rrr` provides contextual metadata to errors.
+`fail` provides contextual metadata to errors.
 
 - Stack trace
 - Additional information
@@ -16,7 +16,7 @@ Better error handling solution especially for application server.
 - Reportability (for an integration with error reporting service)
 
 
-This package was forked from [`creasty/apperrors`](https://github.com/izumin5210/rrr).
+This package was forked from [`creasty/apperrors`](https://github.com/izumin5210/fail).
 
 Why
 ---
@@ -26,7 +26,7 @@ Because of this lack of contextual metadata, debugging is a pain in the ass.
 
 ### How different from [pkg/errors](https://github.com/pkg/errors)
 
-:memo: `rrr` supports `pkg/errors`. It reuses `pkg/errors`'s stack trace data of the innermost (root) error, and converts into `rrr`'s data type.
+:memo: `fail` supports `pkg/errors`. It reuses `pkg/errors`'s stack trace data of the innermost (root) error, and converts into `fail`'s data type.
 
 TBA
 
@@ -62,7 +62,7 @@ It returns nil if err is nil
 ```go
 ok := emailRegexp.MatchString("invalid#email.addr")
 if !ok {
-	return rrr.New("invalid email address")
+	return fail.New("invalid email address")
 }
 ```
 
@@ -71,7 +71,7 @@ if !ok {
 ```go
 _, err := ioutil.ReadAll(r)
 if err != nil {
-	return rrr.Wrap(err)
+	return fail.Wrap(err)
 }
 ```
 
@@ -115,11 +115,11 @@ WithParam(s) annotates with key-value pairs.
 ```go
 _, err := ioutil.ReadAll(r)
 if err != nil {
-	return rrr.Wrap(
+	return fail.Wrap(
 		err,
-		rrr.WithMessage("read failed"),
-		rrr.WithStatusCode(http.StatusBadRequest),
-		rrr.WithReport(),
+		fail.WithMessage("read failed"),
+		fail.WithStatusCode(http.StatusBadRequest),
+		fail.WithReport(),
 	)
 }
 ```
@@ -132,7 +132,7 @@ Extract context from an error
 func Unwrap(err error) *Error
 ```
 
-Unwrap extracts an underlying \*rrr.Error from an error.  
+Unwrap extracts an underlying \*fail.Error from an error.  
 If the given error isn't eligible for retriving context from,
 it returns nil
 
@@ -154,7 +154,7 @@ type Error struct {
 
 ### Example
 
-Here's a minimum executable example describing how `rrr` works.
+Here's a minimum executable example describing how `fail` works.
 
 ```go
 package main
@@ -162,7 +162,7 @@ package main
 import (
 	"errors"
 
-	"github.com/izumin5210/rrr"
+	"github.com/izumin5210/fail"
 	"github.com/k0kubun/pp"
 )
 
@@ -170,13 +170,13 @@ func errFunc0() error {
 	return errors.New("this is the root cause")
 }
 func errFunc1() error {
-	return rrr.Wrap(errFunc0())
+	return fail.Wrap(errFunc0())
 }
 func errFunc2() error {
-	return rrr.Wrap(errFunc1(), rrr.WithMessage("fucked up!"))
+	return fail.Wrap(errFunc1(), fail.WithMessage("fucked up!"))
 }
 func errFunc3() error {
-	return rrr.Wrap(errFunc2(), rrr.WithStatusCode(500), rrr.WithReport())
+	return fail.Wrap(errFunc2(), fail.WithStatusCode(500), fail.WithReport())
 }
 
 func main() {
@@ -187,18 +187,18 @@ func main() {
 
 ```sh-session
 $ go run main.go
-&rrr.Error{
+&fail.Error{
   Err:        &errors.errorString{s: "this is the root cause"},
   Message:    "fucked up!",
   StatusCode: 500,
   Report:     true,
-  StackTrace: rrr.StackTrace{
-    rrr.Frame{Func: "errFunc1", File: "main.go", Line: 13},
-    rrr.Frame{Func: "errFunc2", File: "main.go", Line: 16},
-    rrr.Frame{Func: "errFunc3", File: "main.go", Line: 19},
-    rrr.Frame{Func: "main", File: "main.go", Line: 23},
-    rrr.Frame{Func: "main", File: "runtime/proc.go", Line: 194},
-    rrr.Frame{Func: "goexit", File: "runtime/asm_amd64.s", Line: 2198},
+  StackTrace: fail.StackTrace{
+    fail.Frame{Func: "errFunc1", File: "main.go", Line: 13},
+    fail.Frame{Func: "errFunc2", File: "main.go", Line: 16},
+    fail.Frame{Func: "errFunc3", File: "main.go", Line: 19},
+    fail.Frame{Func: "main", File: "main.go", Line: 23},
+    fail.Frame{Func: "main", File: "runtime/proc.go", Line: 194},
+    fail.Frame{Func: "goexit", File: "runtime/asm_amd64.s", Line: 2198},
   },
 }
 ```
@@ -213,7 +213,7 @@ package middleware
 import (
 	"net/http"
 
-	"github.com/izumin5210/rrr"
+	"github.com/izumin5210/fail"
 	"github.com/izumin5210/gin-contrib/readbody"
 	"github.com/gin-gonic/gin"
 
@@ -225,11 +225,11 @@ import (
 // ReportError handles an error, changes status code based on the error,
 // and reports to an external service if necessary
 func ReportError(c *gin.Context, err error) {
-	appErr := rrr.Unwrap(err)
+	appErr := fail.Unwrap(err)
 	if appErr == nil {
 		// As it's a "raw" error, `StackTrace` field left unset.
 		// And it should be always reported
-		appErr = &rrr.Error{
+		appErr = &fail.Error{
 			Err:    err,
 			Report: true,
 		}
@@ -255,7 +255,7 @@ func ReportError(c *gin.Context, err error) {
 	}
 }
 
-func convertAppError(err *rrr.Error) {
+func convertAppError(err *fail.Error) {
 	// If the error is from ORM and it says "no record found,"
 	// override status code to 404
 	if err.Err == gorm.ErrRecordNotFound {
@@ -264,7 +264,7 @@ func convertAppError(err *rrr.Error) {
 	}
 }
 
-func uploadAppError(c *gin.Context, err *rrr.Error) {
+func uploadAppError(c *gin.Context, err *fail.Error) {
 	// By using readbody, you can retrive an original request body
 	// even when c.Request.Body had been read
 	body := readbody.Get(c)

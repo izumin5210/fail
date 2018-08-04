@@ -1,4 +1,4 @@
-package rrr
+package fail
 
 import (
 	"runtime"
