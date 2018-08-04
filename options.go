@@ -11,7 +11,7 @@ func WithMessage(msg string) Option {
 }
 
 // WithStatusCode annotates with the status code.
-func WithStatusCode(code int) Option {
+func WithStatusCode(code interface{}) Option {
 	return func(err *Error) {
 		err.StatusCode = code
 	}

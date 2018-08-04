@@ -86,7 +86,7 @@ func WithMessage(msg string) Option
 WithMessage annotates with the message.
 
 ```go
-func WithStatusCode(code int) Option
+func WithStatusCode(code interface{}) Option
 ```
 
 WithStatusCode annotates with the status code.
