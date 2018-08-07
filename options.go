@@ -17,10 +17,10 @@ func WithStatusCode(code interface{}) Option {
 	}
 }
 
-// WithReport annotates with the reportability.
-func WithReport() Option {
+// WithExpected annotates with the reportability.
+func WithExpected() Option {
 	return func(err *Error) {
-		err.Report = true
+		err.Expected = true
 	}
 }
 

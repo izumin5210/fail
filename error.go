@@ -13,8 +13,8 @@ type Error struct {
 	Message string
 	// StatusCode is a status code that is desired to be contained in responses, such as HTTP Status code.
 	StatusCode interface{}
-	// Report represents whether the error should be reported to administrators
-	Report bool
+	// Expected represents whether the error should be reported to administrators
+	Expected bool
 	// Tags represents tags of the error which is classified errors.
 	Tags []string
 	// Params is an annotated parameters of the error.
@@ -58,7 +58,7 @@ func (e *Error) Copy() *Error {
 		Err:        e.Err,
 		Message:    e.Message,
 		StatusCode: e.StatusCode,
-		Report:     e.Report,
+		Expected:   e.Expected,
 		Tags:       e.Tags,
 		Params:     e.Params,
 		StackTrace: e.StackTrace,
