@@ -95,6 +95,7 @@ WithStatusCode annotates with the status code.
 
 ```go
 func WithReport() Option
+func WithoutReport() Option
 ```
 
 WithReport annotates with the reportability.
@@ -146,7 +147,7 @@ type Error struct {
 	Message string
 	// StatusCode is a status code that is desired to be used for a HTTP response
 	StatusCode int
-	// Report represents whether the error should be reported to administrators
+	// Report represents whether the error should be reported to administrators (default true)
 	Report bool
 	// StackTrace is a stack trace of the original error
 	// from the point where it was created
@@ -178,7 +179,7 @@ func errFunc2() error {
 	return fail.Wrap(errFunc1(), fail.WithMessage("fucked up!"))
 }
 func errFunc3() error {
-	return fail.Wrap(errFunc2(), fail.WithStatusCode(500), fail.WithReport())
+	return fail.Wrap(errFunc2(), fail.WithStatusCode(403), fail.WithoutReport())
 }
 
 func main() {
@@ -192,8 +193,8 @@ $ go run main.go
 &fail.Error{
   Err:        &errors.errorString{s: "this is the root cause"},
   Message:    "fucked up!",
-  StatusCode: 500,
-  Report:     true,
+  StatusCode: 403,
+  Report:     false,
   StackTrace: fail.StackTrace{
     fail.Frame{Func: "errFunc1", File: "main.go", Line: 13},
     fail.Frame{Func: "errFunc2", File: "main.go", Line: 16},
