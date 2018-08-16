@@ -15,6 +15,7 @@ func TestNew(t *testing.T) {
 	appErr := Unwrap(err)
 	assert.Equal(t, err.Error(), appErr.Err.Error())
 	assert.Equal(t, "", appErr.Message)
+	assert.Equal(t, true, appErr.Report)
 	assert.NotEmpty(t, appErr.StackTrace)
 	assert.Equal(t, "TestNew", appErr.StackTrace[0].Func)
 }
@@ -26,6 +27,7 @@ func TestErrorf(t *testing.T) {
 	appErr := Unwrap(err)
 	assert.Equal(t, err.Error(), appErr.Err.Error())
 	assert.Equal(t, "", appErr.Message)
+	assert.Equal(t, true, appErr.Report)
 	assert.NotEmpty(t, appErr.StackTrace)
 	assert.Equal(t, "TestErrorf", appErr.StackTrace[0].Func)
 }
@@ -198,36 +200,43 @@ func TestWithParams(t *testing.T) {
 	})
 }
 
-func TestWithReport(t *testing.T) {
+func TestWithoutReport(t *testing.T) {
 	t.Run("nil", func(t *testing.T) {
-		err := Wrap(nil, WithReport())
+		err := Wrap(nil, WithoutReport())
 		assert.Equal(t, nil, err)
 	})
 
 	t.Run("bare", func(t *testing.T) {
 		err0 := errors.New("original")
 
-		err1 := Wrap(err0, WithReport())
+		err1 := Wrap(err0, WithoutReport())
 
 		appErr := Unwrap(err1)
 		assert.Equal(t, err0, appErr.Err)
-		assert.Equal(t, "", appErr.Message)
+		assert.Equal(t, false, appErr.Report)
 	})
 
 	t.Run("already wrapped", func(t *testing.T) {
 		err0 := errors.New("original")
 
-		err1 := Wrap(err0, WithReport())
-		err2 := Wrap(err1, WithReport())
+		err1 := Wrap(err0, WithoutReport())
+		err2 := Wrap(err1, WithoutReport())
+		err3 := Wrap(err1, WithReport())
 
 		{
 			appErr := Unwrap(err1)
 			assert.Equal(t, err0, appErr.Err)
-			assert.Equal(t, true, appErr.Report)
+			assert.Equal(t, false, appErr.Report)
 		}
 
 		{
 			appErr := Unwrap(err2)
+			assert.Equal(t, err0, appErr.Err)
+			assert.Equal(t, false, appErr.Report)
+		}
+
+		{
+			appErr := Unwrap(err3)
 			assert.Equal(t, err0, appErr.Err)
 			assert.Equal(t, true, appErr.Report)
 		}
@@ -309,7 +318,7 @@ func TestAll(t *testing.T) {
 		appErr := Unwrap(errFunc3())
 		assert.Equal(t, "e2: e1: e0", appErr.Message)
 		assert.Equal(t, nil, appErr.StatusCode)
-		assert.Equal(t, false, appErr.Report)
+		assert.Equal(t, true, appErr.Report)
 		assert.NotEmpty(t, appErr.StackTrace)
 		assert.Equal(t, "errFunc1", appErr.StackTrace[0].Func)
 	}
