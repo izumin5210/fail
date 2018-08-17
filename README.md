@@ -216,7 +216,7 @@ import (
 	"net/http"
 
 	"github.com/srvc/fail"
-	"github.com/srvc/gin-contrib/readbody"
+	"github.com/creasty/gin-contrib/readbody"
 	"github.com/gin-gonic/gin"
 
 	// Only for example
@@ -281,7 +281,7 @@ And then you can use like as follows.
 
 ```go
 r := gin.Default()
-r.Use(readbody.Recorder()) // Use github.com/srvc/gin-contrib/readbody
+r.Use(readbody.Recorder()) // Use github.com/creasty/gin-contrib/readbody
 
 r.GET("/test", func(c *gin.Context) {
 	err := doSomethingReallyComplex()
