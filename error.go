@@ -71,11 +71,10 @@ func (e *Error) Copy() *Error {
 
 // LastMessage returns the last message
 func (e *Error) LastMessage() string {
-	l := len(e.Messages)
-	if l == 0 {
+	if len(e.Messages) == 0 {
 		return ""
 	}
-	return e.Messages[l-1]
+	return e.Messages[0]
 }
 
 // FullMessage returns a string of messages concatenated with ": "
