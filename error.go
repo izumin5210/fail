@@ -50,7 +50,7 @@ func Errorf(format string, args ...interface{}) error {
 
 // Error implements error interface
 func (e *Error) Error() string {
-	if message := e.AllMessage(); message != "" {
+	if message := e.FullMessage(); message != "" {
 		return message
 	}
 	return e.Err.Error()
@@ -78,8 +78,8 @@ func (e *Error) LastMessage() string {
 	return e.Messages[l-1]
 }
 
-// AllMessage returns a string of messages concatenated with ": "
-func (e *Error) AllMessage() string {
+// FullMessage returns a string of messages concatenated with ": "
+func (e *Error) FullMessage() string {
 	return strings.Join(e.Messages, messageDelimiter)
 }
 
