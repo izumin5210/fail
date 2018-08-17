@@ -88,10 +88,10 @@ func WithMessage(msg string) Option
 WithMessage annotates with the message.
 
 ```go
-func WithStatusCode(code interface{}) Option
+func WithCode(code interface{}) Option
 ```
 
-WithStatusCode annotates with the status code.
+WithCode annotates with the status code.
 
 ```go
 func WithIgnorable() Option
@@ -120,7 +120,7 @@ if err != nil {
 	return fail.Wrap(
 		err,
 		fail.WithMessage("read failed"),
-		fail.WithStatusCode(http.StatusBadRequest),
+		fail.WithCode(http.StatusBadRequest),
 		fail.WithIgnorable(),
 	)
 }
@@ -144,8 +144,8 @@ type Error struct {
 	Err error
 	// Message is an annotated description of the error
 	Message string
-	// StatusCode is a status code that is desired to be used for a HTTP response
-	StatusCode int
+	// Code is a status code that is desired to be used for a HTTP response
+	Code int
 	// Ignorable represents whether the error should be reported to administrators
 	Ignorable bool
 	// StackTrace is a stack trace of the original error
@@ -178,7 +178,7 @@ func errFunc2() error {
 	return fail.Wrap(errFunc1(), fail.WithMessage("fucked up!"))
 }
 func errFunc3() error {
-	return fail.Wrap(errFunc2(), fail.WithStatusCode(500), fail.WithIgnorable())
+	return fail.Wrap(errFunc2(), fail.WithCode(500), fail.WithIgnorable())
 }
 
 func main() {
@@ -192,7 +192,7 @@ $ go run main.go
 &fail.Error{
   Err:        &errors.errorString{s: "this is the root cause"},
   Message:    "fucked up!",
-  StatusCode: 500,
+  Code: 500,
   Ignorable:  true,
   StackTrace: fail.StackTrace{
     fail.Frame{Func: "errFunc1", File: "main.go", Line: 13},
@@ -249,8 +249,8 @@ func ReportError(c *gin.Context, err error) {
 	}
 
 	// Set status code accordingly
-	if appErr.StatusCode > 0 {
-		c.Status(appErr.StatusCode)
+	if appErr.Code > 0 {
+		c.Status(appErr.Code)
 	} else {
 		c.Status(http.StatusInternalServerError)
 	}
@@ -260,7 +260,7 @@ func convertAppError(err *fail.Error) {
 	// If the error is from ORM and it says "no record found,"
 	// override status code to 404
 	if err.Err == gorm.ErrRecordNotFound {
-		err.StatusCode = http.StatusNotFound
+		err.Code = http.StatusNotFound
 		return
 	}
 }
