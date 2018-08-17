@@ -5,6 +5,11 @@ import (
 	"fmt"
 )
 
+var (
+	// DefaultReportability is a defualt value of reportabilities of errors
+	DefaultReportability = true
+)
+
 // Error is an error that has contextual metadata
 type Error struct {
 	// Err is the original error (you might call it the root cause)
@@ -13,7 +18,7 @@ type Error struct {
 	Message string
 	// StatusCode is a status code that is desired to be contained in responses, such as HTTP Status code.
 	StatusCode interface{}
-	// Report represents whether the error should be reported to administrators
+	// Report represents whether the error should be reported to administrators (default true).
 	Report bool
 	// Tags represents tags of the error which is classified errors.
 	Tags []string
@@ -30,6 +35,7 @@ func New(text string) error {
 	return &Error{
 		Err:        errors.New(text),
 		StackTrace: newStackTrace(0),
+		Report:     DefaultReportability,
 	}
 }
 
@@ -40,6 +46,7 @@ func Errorf(format string, args ...interface{}) error {
 	return &Error{
 		Err:        fmt.Errorf(format, args...),
 		StackTrace: newStackTrace(0),
+		Report:     DefaultReportability,
 	}
 }
 
@@ -97,6 +104,7 @@ func wrap(err error) *Error {
 		Err:        pkgErr.Err,
 		StackTrace: stackTrace,
 		Message:    pkgErr.Message,
+		Report:     DefaultReportability,
 	}
 }
 

@@ -24,6 +24,13 @@ func WithReport() Option {
 	}
 }
 
+// WithoutReport removes the reportability annotation.
+func WithoutReport() Option {
+	return func(err *Error) {
+		err.Report = false
+	}
+}
+
 // WithTags annotates with tags.
 func WithTags(tags ...string) Option {
 	return func(err *Error) {
