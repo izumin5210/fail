@@ -9,7 +9,7 @@ func WithMessage(msg string) Option {
 		if msg == "" {
 			return
 		}
-		err.Messages = append(err.Messages, msg)
+		err.Messages = append([]string{msg}, err.Messages...)
 	}
 }
 

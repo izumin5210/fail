@@ -56,7 +56,7 @@ func TestWithMessage(t *testing.T) {
 			StatusCode: 400,
 		}
 		err2 := Wrap(err1, WithMessage("message 2"))
-		assert.Equal(t, "message 1: message 2", err2.Error())
+		assert.Equal(t, "message 2: message 1", err2.Error())
 
 		{
 			appErr := Unwrap(err1)
@@ -316,7 +316,7 @@ func TestAll(t *testing.T) {
 
 	{
 		appErr := Unwrap(errFunc4())
-		assert.Equal(t, "e2: e1: e0: e4", appErr.AllMessage())
+		assert.Equal(t, "e4: e2: e1: e0", appErr.AllMessage())
 		assert.Equal(t, 500, appErr.StatusCode)
 		assert.Equal(t, true, appErr.Ignorable)
 		assert.NotEmpty(t, appErr.StackTrace)

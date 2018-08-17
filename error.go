@@ -111,16 +111,12 @@ func wrap(err error) *Error {
 		stackTrace = newStackTrace(1)
 	}
 
-	var messages []string
-	if pkgErr.Message != "" {
-		messages = append(messages, pkgErr.Message)
-	}
-
-	return &Error{
+	wrappedErr := &Error{
 		Err:        pkgErr.Err,
 		StackTrace: stackTrace,
-		Messages:   messages,
 	}
+	WithMessage(pkgErr.Message)(wrappedErr)
+	return wrappedErr
 }
 
 // Unwrap extracts an underlying *fail.Error from an error.
