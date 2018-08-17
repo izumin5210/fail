@@ -17,10 +17,10 @@ func WithStatusCode(code interface{}) Option {
 	}
 }
 
-// WithReport annotates with the reportability.
-func WithReport() Option {
+// WithIgnorable annotates with the reportability.
+func WithIgnorable() Option {
 	return func(err *Error) {
-		err.Report = true
+		err.Ignorable = true
 	}
 }
 
