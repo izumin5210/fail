@@ -14,7 +14,7 @@ Better error handling solution especially for application server.
 
 - Stack trace
 - Additional information
-- Status code (for a HTTP server)
+- Error code (for mapping HTTP status code, gRPC status code, etc.)
 - Reportability (for an integration with error reporting service)
 
 
@@ -192,7 +192,7 @@ $ go run main.go
 &fail.Error{
   Err:        &errors.errorString{s: "this is the root cause"},
   Message:    "fucked up!",
-  Code: 500,
+  Code:       500,
   Ignorable:  true,
   StackTrace: fail.StackTrace{
     fail.Frame{Func: "errFunc1", File: "main.go", Line: 13},
