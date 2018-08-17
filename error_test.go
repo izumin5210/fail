@@ -51,9 +51,9 @@ func TestWithMessage(t *testing.T) {
 		err0 := errors.New("original")
 
 		err1 := &Error{
-			Err:        err0,
-			Message:    "message 1",
-			Code: 400,
+			Err:     err0,
+			Message: "message 1",
+			Code:    400,
 		}
 		err2 := Wrap(err1, WithMessage("message 2"))
 		assert.Equal(t, "message 2", err2.Error())
@@ -94,9 +94,9 @@ func TestWithCode(t *testing.T) {
 		err0 := errors.New("original")
 
 		err1 := &Error{
-			Err:        err0,
-			Message:    "message 1",
-			Code: 400,
+			Err:     err0,
+			Message: "message 1",
+			Code:    400,
 		}
 		err2 := Wrap(err1, WithCode(500))
 

@@ -57,7 +57,7 @@ func (e *Error) Copy() *Error {
 	return &Error{
 		Err:        e.Err,
 		Message:    e.Message,
-		Code: e.Code,
+		Code:       e.Code,
 		Ignorable:  e.Ignorable,
 		Tags:       e.Tags,
 		Params:     e.Params,
