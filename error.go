@@ -3,14 +3,19 @@ package fail
 import (
 	"errors"
 	"fmt"
+	"strings"
+)
+
+const (
+	messageDelimiter = ": "
 )
 
 // Error is an error that has contextual metadata
 type Error struct {
 	// Err is the original error (you might call it the root cause)
 	Err error
-	// Message is an annotated description of the error
-	Message string
+	// Messages is an annotated description of the error
+	Messages []string
 	// StatusCode is a status code that is desired to be contained in responses, such as HTTP Status code.
 	StatusCode interface{}
 	// Ignorable represents whether the error should be reported to administrators
@@ -45,10 +50,9 @@ func Errorf(format string, args ...interface{}) error {
 
 // Error implements error interface
 func (e *Error) Error() string {
-	if e.Message != "" {
-		return e.Message
+	if message := e.AllMessage(); message != "" {
+		return message
 	}
-
 	return e.Err.Error()
 }
 
@@ -56,13 +60,27 @@ func (e *Error) Error() string {
 func (e *Error) Copy() *Error {
 	return &Error{
 		Err:        e.Err,
-		Message:    e.Message,
+		Messages:   e.Messages,
 		StatusCode: e.StatusCode,
 		Ignorable:  e.Ignorable,
 		Tags:       e.Tags,
 		Params:     e.Params,
 		StackTrace: e.StackTrace,
 	}
+}
+
+// LastMessage returns the last message
+func (e *Error) LastMessage() string {
+	l := len(e.Messages)
+	if l == 0 {
+		return ""
+	}
+	return e.Messages[l-1]
+}
+
+// AllMessage returns a string of messages concatenated with ": "
+func (e *Error) AllMessage() string {
+	return strings.Join(e.Messages, messageDelimiter)
 }
 
 // Wrap returns an error annotated with a stack trace from the point it was called.
@@ -96,7 +114,7 @@ func wrap(err error) *Error {
 	return &Error{
 		Err:        pkgErr.Err,
 		StackTrace: stackTrace,
-		Message:    pkgErr.Message,
+		Messages:   []string{pkgErr.Message},
 	}
 }
 
