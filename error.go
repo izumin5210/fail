@@ -58,7 +58,7 @@ func (e *Error) Copy() *Error {
 		Err:        e.Err,
 		Message:    e.Message,
 		StatusCode: e.StatusCode,
-		Ignorable:   e.Ignorable,
+		Ignorable:  e.Ignorable,
 		Tags:       e.Tags,
 		Params:     e.Params,
 		StackTrace: e.StackTrace,

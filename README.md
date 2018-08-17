@@ -193,7 +193,7 @@ $ go run main.go
   Err:        &errors.errorString{s: "this is the root cause"},
   Message:    "fucked up!",
   StatusCode: 500,
-  Ignorable:   true,
+  Ignorable:  true,
   StackTrace: fail.StackTrace{
     fail.Frame{Func: "errFunc1", File: "main.go", Line: 13},
     fail.Frame{Func: "errFunc2", File: "main.go", Line: 16},
@@ -232,8 +232,7 @@ func ReportError(c *gin.Context, err error) {
 		// As it's a "raw" error, `StackTrace` field left unset.
 		// And it should be always reported
 		appErr = &fail.Error{
-			Err:      err,
-			Ignorable: true,
+			Err: err,
 		}
 	}
 
