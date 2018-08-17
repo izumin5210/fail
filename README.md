@@ -142,8 +142,8 @@ it returns nil
 type Error struct {
 	// Err is the original error (you might call it the root cause)
 	Err error
-	// Message is an annotated description of the error
-	Message string
+	// Messages is an annotated description of the error
+	Messages []string
 	// StatusCode is a status code that is desired to be used for a HTTP response
 	StatusCode int
 	// Ignorable represents whether the error should be reported to administrators
@@ -191,7 +191,7 @@ func main() {
 $ go run main.go
 &fail.Error{
   Err:        &errors.errorString{s: "this is the root cause"},
-  Message:    "fucked up!",
+  Messages:   []string{"fucked up!"},
   StatusCode: 500,
   Ignorable:  true,
   StackTrace: fail.StackTrace{
@@ -244,8 +244,8 @@ func ReportError(c *gin.Context, err error) {
 	}
 
 	// Expose an error message in the header
-	if appErr.Message != "" {
-		c.Header("X-App-Error", appErr.Message)
+	if msg := appErr.LastMessage(); msg != "" {
+		c.Header("X-App-Error", msg)
 	}
 
 	// Set status code accordingly
