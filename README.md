@@ -94,10 +94,10 @@ func WithStatusCode(code interface{}) Option
 WithStatusCode annotates with the status code.
 
 ```go
-func WithExpected() Option
+func WithIgnorable() Option
 ```
 
-WithExpected annotates with the reportability.
+WithIgnorable annotates with the reportability.
 
 ```go
 func WithTags(tags ...string) Option
@@ -121,7 +121,7 @@ if err != nil {
 		err,
 		fail.WithMessage("read failed"),
 		fail.WithStatusCode(http.StatusBadRequest),
-		fail.WithExpected(),
+		fail.WithIgnorable(),
 	)
 }
 ```
@@ -146,8 +146,8 @@ type Error struct {
 	Message string
 	// StatusCode is a status code that is desired to be used for a HTTP response
 	StatusCode int
-	// Expected represents whether the error should be reported to administrators
-	Expected bool
+	// Ignorable represents whether the error should be reported to administrators
+	Ignorable bool
 	// StackTrace is a stack trace of the original error
 	// from the point where it was created
 	StackTrace StackTrace
@@ -178,7 +178,7 @@ func errFunc2() error {
 	return fail.Wrap(errFunc1(), fail.WithMessage("fucked up!"))
 }
 func errFunc3() error {
-	return fail.Wrap(errFunc2(), fail.WithStatusCode(500), fail.WithExpected())
+	return fail.Wrap(errFunc2(), fail.WithStatusCode(500), fail.WithIgnorable())
 }
 
 func main() {
@@ -193,7 +193,7 @@ $ go run main.go
   Err:        &errors.errorString{s: "this is the root cause"},
   Message:    "fucked up!",
   StatusCode: 500,
-  Expected:   true,
+  Ignorable:   true,
   StackTrace: fail.StackTrace{
     fail.Frame{Func: "errFunc1", File: "main.go", Line: 13},
     fail.Frame{Func: "errFunc2", File: "main.go", Line: 16},
@@ -233,14 +233,14 @@ func ReportError(c *gin.Context, err error) {
 		// And it should be always reported
 		appErr = &fail.Error{
 			Err:      err,
-			Expected: true,
+			Ignorable: true,
 		}
 	}
 
 	convertAppError(appErr)
 
 	// Send the error to an external service
-	if !appErr.Expected {
+	if !appErr.Ignorable {
 		go uploadAppError(c.Copy(), appErr)
 	}
 

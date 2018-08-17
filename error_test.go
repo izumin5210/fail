@@ -198,16 +198,16 @@ func TestWithParams(t *testing.T) {
 	})
 }
 
-func TestWithExpected(t *testing.T) {
+func TestWithIgnorable(t *testing.T) {
 	t.Run("nil", func(t *testing.T) {
-		err := Wrap(nil, WithExpected())
+		err := Wrap(nil, WithIgnorable())
 		assert.Equal(t, nil, err)
 	})
 
 	t.Run("bare", func(t *testing.T) {
 		err0 := errors.New("original")
 
-		err1 := Wrap(err0, WithExpected())
+		err1 := Wrap(err0, WithIgnorable())
 
 		appErr := Unwrap(err1)
 		assert.Equal(t, err0, appErr.Err)
@@ -217,19 +217,19 @@ func TestWithExpected(t *testing.T) {
 	t.Run("already wrapped", func(t *testing.T) {
 		err0 := errors.New("original")
 
-		err1 := Wrap(err0, WithExpected())
-		err2 := Wrap(err1, WithExpected())
+		err1 := Wrap(err0, WithIgnorable())
+		err2 := Wrap(err1, WithIgnorable())
 
 		{
 			appErr := Unwrap(err1)
 			assert.Equal(t, err0, appErr.Err)
-			assert.Equal(t, true, appErr.Expected)
+			assert.Equal(t, true, appErr.Ignorable)
 		}
 
 		{
 			appErr := Unwrap(err2)
 			assert.Equal(t, err0, appErr.Err)
-			assert.Equal(t, true, appErr.Expected)
+			assert.Equal(t, true, appErr.Ignorable)
 		}
 	})
 }
@@ -309,7 +309,7 @@ func TestAll(t *testing.T) {
 		appErr := Unwrap(errFunc3())
 		assert.Equal(t, "e2: e1: e0", appErr.Message)
 		assert.Equal(t, nil, appErr.StatusCode)
-		assert.Equal(t, false, appErr.Expected)
+		assert.Equal(t, false, appErr.Ignorable)
 		assert.NotEmpty(t, appErr.StackTrace)
 		assert.Equal(t, "errFunc1", appErr.StackTrace[0].Func)
 	}
@@ -318,7 +318,7 @@ func TestAll(t *testing.T) {
 		appErr := Unwrap(errFunc4())
 		assert.Equal(t, "e4", appErr.Message)
 		assert.Equal(t, 500, appErr.StatusCode)
-		assert.Equal(t, true, appErr.Expected)
+		assert.Equal(t, true, appErr.Ignorable)
 		assert.NotEmpty(t, appErr.StackTrace)
 		assert.Equal(t, "errFunc1", appErr.StackTrace[0].Func)
 	}
@@ -341,5 +341,5 @@ func errFunc3() error {
 	return Wrap(errFunc2())
 }
 func errFunc4() error {
-	return Wrap(errFunc3(), WithMessage("e4"), WithStatusCode(500), WithExpected())
+	return Wrap(errFunc3(), WithMessage("e4"), WithStatusCode(500), WithIgnorable())
 }
