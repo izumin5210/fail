@@ -1,12 +1,12 @@
 fail
 =========
 
-[![Build Status](https://travis-ci.com/izumin5210/fail.svg?branch=master)](https://travis-ci.com/izumin5210/fail)
-[![codecov](https://codecov.io/gh/izumin5210/fail/branch/master/graph/badge.svg)](https://codecov.io/gh/izumin5210/fail)
-[![GoDoc](https://godoc.org/github.com/izumin5210/fail?status.svg)](https://godoc.org/github.com/izumin5210/fail)
-[![Go project version](https://badge.fury.io/go/github.com%2Fizumin5210%2Ffail.svg)](https://badge.fury.io/go/github.com%2Fizumin5210%2Ffail)
-[![Go Report Card](https://goreportcard.com/badge/github.com/izumin5210/fail)](https://goreportcard.com/report/github.com/izumin5210/fail)
-[![License](https://img.shields.io/github/license/izumin5210/fail.svg)](./LICENSE)
+[![Build Status](https://travis-ci.com/srvc/fail.svg?branch=master)](https://travis-ci.com/srvc/fail)
+[![codecov](https://codecov.io/gh/srvc/fail/branch/master/graph/badge.svg)](https://codecov.io/gh/srvc/fail)
+[![GoDoc](https://godoc.org/github.com/srvc/fail?status.svg)](https://godoc.org/github.com/srvc/fail)
+[![Go project version](https://badge.fury.io/go/github.com%2Fsrvc%2Ffail.svg)](https://badge.fury.io/go/github.com%2Fsrvc%2Ffail)
+[![Go Report Card](https://goreportcard.com/badge/github.com/srvc/fail)](https://goreportcard.com/report/github.com/srvc/fail)
+[![License](https://img.shields.io/github/license/srvc/fail.svg)](./LICENSE)
 
 Better error handling solution especially for application server.
 
@@ -18,7 +18,7 @@ Better error handling solution especially for application server.
 - Reportability (for an integration with error reporting service)
 
 
-This package was forked from [`creasty/apperrors`](https://github.com/izumin5210/fail).
+This package was forked from [`creasty/apperrors`](https://github.com/srvc/fail).
 
 Why
 ---
@@ -164,7 +164,7 @@ package main
 import (
 	"errors"
 
-	"github.com/izumin5210/fail"
+	"github.com/srvc/fail"
 	"github.com/k0kubun/pp"
 )
 
@@ -215,8 +215,8 @@ package middleware
 import (
 	"net/http"
 
-	"github.com/izumin5210/fail"
-	"github.com/izumin5210/gin-contrib/readbody"
+	"github.com/srvc/fail"
+	"github.com/srvc/gin-contrib/readbody"
 	"github.com/gin-gonic/gin"
 
 	// Only for example
@@ -281,7 +281,7 @@ And then you can use like as follows.
 
 ```go
 r := gin.Default()
-r.Use(readbody.Recorder()) // Use github.com/izumin5210/gin-contrib/readbody
+r.Use(readbody.Recorder()) // Use github.com/srvc/gin-contrib/readbody
 
 r.GET("/test", func(c *gin.Context) {
 	err := doSomethingReallyComplex()

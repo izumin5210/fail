@@ -39,7 +39,7 @@ func TestFuncname(t *testing.T) {
 	tests := map[string]string{
 		"":                                    "",
 		"runtime.main":                        "main",
-		"github.com/izumin5210/fail.funcname": "funcname",
+		"github.com/srvc/fail.funcname": "funcname",
 		"funcname":                            "funcname",
 		"io.copyBuffer":                       "copyBuffer",
 		"main.(*R).Write":                     "(*R).Write",
