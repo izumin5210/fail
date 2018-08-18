@@ -30,7 +30,7 @@ func extractPkgError(err error) pkgError {
 	for {
 		if t, ok := rootErr.(traceable); ok {
 			stackTrace := convertStackTrace(t.StackTrace())
-			stackTraces = append([]StackTrace{stackTrace}, stackTraces...)
+			stackTraces = append(stackTraces, stackTrace)
 		}
 
 		if cause, ok := rootErr.(causer); ok {
@@ -41,11 +41,6 @@ func extractPkgError(err error) pkgError {
 		break
 	}
 
-	var stackTrace StackTrace
-	if len(stackTraces) > 0 {
-		stackTrace = stackTraces[0] // TODO
-	}
-
 	var msg string
 	if err.Error() != rootErr.Error() {
 		msg = err.Error()
@@ -54,7 +49,7 @@ func extractPkgError(err error) pkgError {
 	return pkgError{
 		Err:        rootErr,
 		Message:    msg,
-		StackTrace: stackTrace,
+		StackTrace: reduceStackTraces(stackTraces),
 	}
 }
 

@@ -138,3 +138,12 @@ func mergeStackTraces(inner StackTrace, outer StackTrace) StackTrace {
 
 	return append(inner, outer...)
 }
+
+// reduceStackTraces incrementally merges multiple stack traces
+// and returns a merged stack trace
+func reduceStackTraces(stackTraces []StackTrace) (merged StackTrace) {
+	for i := len(stackTraces) - 1; i >= 0; i-- {
+		merged = mergeStackTraces(merged, stackTraces[i])
+	}
+	return
+}

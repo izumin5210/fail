@@ -134,3 +134,36 @@ func TestMergeStackTraces(t *testing.T) {
 		assert.Equal(t, result, mergeStackTraces(inner, outer))
 	})
 }
+
+func TestReduceStackTraces(t *testing.T) {
+	input := []StackTrace{
+		{
+			{Func: "main", File: "main.go", Line: 179},
+		},
+		{
+			{Func: "f3.func1", File: "main.go", Line: 168},
+		},
+		{
+			{Func: "f2", File: "main.go", Line: 162},
+			{Func: "f3.func1", File: "main.go", Line: 168},
+		},
+		{
+			{Func: "f1", File: "main.go", Line: 158},
+			{Func: "f2", File: "main.go", Line: 162},
+			{Func: "f3.func1", File: "main.go", Line: 168},
+		},
+		{
+			{Func: "init", File: "main.go", Line: 155},
+		},
+		{},
+	}
+	result := StackTrace{
+		{Func: "init", File: "main.go", Line: 155},
+		{Func: "f1", File: "main.go", Line: 158},
+		{Func: "f2", File: "main.go", Line: 162},
+		{Func: "f3.func1", File: "main.go", Line: 168},
+		{Func: "main", File: "main.go", Line: 179},
+	}
+
+	assert.Equal(t, result, reduceStackTraces(input))
+}
