@@ -13,10 +13,10 @@ func WithMessage(msg string) Option {
 	}
 }
 
-// WithStatusCode annotates with the status code.
-func WithStatusCode(code interface{}) Option {
+// WithCode annotates with the code.
+func WithCode(code interface{}) Option {
 	return func(err *Error) {
-		err.StatusCode = code
+		err.Code = code
 	}
 }
 

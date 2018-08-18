@@ -16,8 +16,8 @@ type Error struct {
 	Err error
 	// Messages is an annotated description of the error
 	Messages []string
-	// StatusCode is a status code that is desired to be contained in responses, such as HTTP Status code.
-	StatusCode interface{}
+	// Code is a status code that is desired to be contained in responses, such as HTTP Status code.
+	Code interface{}
 	// Ignorable represents whether the error should be reported to administrators
 	Ignorable bool
 	// Tags represents tags of the error which is classified errors.
@@ -61,7 +61,7 @@ func (e *Error) Copy() *Error {
 	return &Error{
 		Err:        e.Err,
 		Messages:   e.Messages,
-		StatusCode: e.StatusCode,
+		Code:       e.Code,
 		Ignorable:  e.Ignorable,
 		Tags:       e.Tags,
 		Params:     e.Params,
