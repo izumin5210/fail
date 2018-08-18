@@ -1,7 +1,6 @@
 package fail
 
 import (
-	"errors"
 	"fmt"
 	"runtime"
 	"strings"
@@ -27,10 +26,10 @@ func (f Frame) hash() string {
 }
 
 // newFrameFrom creates Frame from the specified program counter
-func newFrameFrom(pc uintptr) (f Frame, err error) {
+func newFrameFrom(pc uintptr) (f Frame, ok bool) {
 	fpc := runtime.FuncForPC(pc)
 	if fpc == nil {
-		err = errors.New("invalid pc")
+		return
 	}
 
 	file, line := fpc.FileLine(pc)
@@ -39,6 +38,11 @@ func newFrameFrom(pc uintptr) (f Frame, err error) {
 	f.File = trimGOPATH(fpc.Name(), file)
 	f.Line = int64(line)
 
+	if strings.HasPrefix(f.File, "runtime/") {
+		return
+	}
+
+	ok = true
 	return
 }
 
@@ -51,17 +55,10 @@ func newStackTrace(offset int) StackTrace {
 	frames := make([]Frame, n)
 
 	for _, pc := range pcs[0:n] {
-		f, err := newFrameFrom(pc)
-		if err != nil {
-			continue
+		if f, ok := newFrameFrom(pc); ok {
+			frames[i] = f
+			i++
 		}
-
-		if strings.HasPrefix(f.File, "runtime/") {
-			continue
-		}
-
-		frames[i] = f
-		i++
 	}
 
 	return frames[:i]

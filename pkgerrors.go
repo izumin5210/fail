@@ -1,8 +1,8 @@
 package fail
 
 import (
-	"fmt"
-	"strconv"
+	//"fmt"
+	//"strconv"
 
 	pkgerrors "github.com/pkg/errors"
 )
@@ -60,15 +60,9 @@ func convertStackTrace(stackTrace pkgerrors.StackTrace) (frames StackTrace) {
 	}
 
 	for _, t := range stackTrace {
-		file := fmt.Sprintf("%s", t)
-		line, _ := strconv.ParseInt(fmt.Sprintf("%d", t), 10, 64)
-		funcName := fmt.Sprintf("%n", t)
-
-		frames = append(frames, Frame{
-			Func: funcName,
-			Line: line,
-			File: file,
-		})
+		if frame, ok := newFrameFrom(uintptr(t)); ok {
+			frames = append(frames, frame)
+		}
 	}
 
 	return
