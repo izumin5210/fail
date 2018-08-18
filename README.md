@@ -145,7 +145,7 @@ type Error struct {
 	// Message is an annotated description of the error
 	Message string
 	// Code is a status code that is desired to be used for a HTTP response
-	Code int
+	Code interface{}
 	// Ignorable represents whether the error should be reported to administrators
 	Ignorable bool
 	// StackTrace is a stack trace of the original error
@@ -249,9 +249,10 @@ func ReportError(c *gin.Context, err error) {
 	}
 
 	// Set status code accordingly
-	if appErr.Code > 0 {
-		c.Status(appErr.Code)
-	} else {
+	switch code := appErr.Code.(type) {
+	case int:
+		c.Status(code)
+	default:
 		c.Status(http.StatusInternalServerError)
 	}
 }
