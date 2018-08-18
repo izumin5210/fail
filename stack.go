@@ -1,6 +1,8 @@
 package fail
 
 import (
+	"errors"
+	"fmt"
 	"runtime"
 	"strings"
 )
@@ -20,6 +22,26 @@ type Frame struct {
 	Line int64
 }
 
+func (f Frame) hash() string {
+	return fmt.Sprintf("%s:%s:%d", f.Func, f.File, f.Line)
+}
+
+// newFrameFrom creates Frame from the specified program counter
+func newFrameFrom(pc uintptr) (f Frame, err error) {
+	fpc := runtime.FuncForPC(pc)
+	if fpc == nil {
+		err = errors.New("invalid pc")
+	}
+
+	file, line := fpc.FileLine(pc)
+
+	f.Func = funcname(fpc.Name())
+	f.File = trimGOPATH(fpc.Name(), file)
+	f.Line = int64(line)
+
+	return
+}
+
 // newStackTrace creates StackTrace by callers
 func newStackTrace(offset int) StackTrace {
 	pcs := make([]uintptr, stackMaxSize)
@@ -29,18 +51,16 @@ func newStackTrace(offset int) StackTrace {
 	frames := make([]Frame, n)
 
 	for _, pc := range pcs[0:n] {
-		f := runtime.FuncForPC(pc)
-		if f == nil {
+		f, err := newFrameFrom(pc)
+		if err != nil {
 			continue
 		}
 
-		file, line := f.FileLine(pc)
-
-		frames[i] = Frame{
-			Func: funcname(f.Name()),
-			File: trimGOPATH(f.Name(), file),
-			Line: int64(line),
+		if strings.HasPrefix(f.File, "runtime/") {
+			continue
 		}
+
+		frames[i] = f
 		i++
 	}
 
@@ -95,4 +115,26 @@ func trimGOPATH(name, file string) string {
 	// get back to 0 or trim the leading separator
 	file = file[i+len(sep):]
 	return file
+}
+
+// mergeStackTraces merges two stack traces
+func mergeStackTraces(inner StackTrace, outer StackTrace) StackTrace {
+	innerLen := len(inner)
+	outerLen := len(outer)
+
+	if innerLen > outerLen {
+		overlap := 0
+		for overlap < outerLen {
+			if inner[innerLen-overlap-1].hash() != outer[outerLen-overlap-1].hash() {
+				break
+			}
+			overlap++
+		}
+
+		if overlap > 0 {
+			return append(inner[:innerLen-overlap], outer...)
+		}
+	}
+
+	return append(inner, outer...)
 }
