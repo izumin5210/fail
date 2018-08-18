@@ -26,10 +26,11 @@ func extractPkgError(err error) pkgError {
 	}
 
 	rootErr := err
-	var st pkgerrors.StackTrace
+	var stackTraces []StackTrace
 	for {
-		if stackTrace, ok := rootErr.(traceable); ok {
-			st = stackTrace.StackTrace()
+		if t, ok := rootErr.(traceable); ok {
+			stackTrace := convertStackTrace(t.StackTrace())
+			stackTraces = append([]StackTrace{stackTrace}, stackTraces...)
 		}
 
 		if cause, ok := rootErr.(causer); ok {
@@ -40,19 +41,9 @@ func extractPkgError(err error) pkgError {
 		break
 	}
 
-	var frames []Frame
-	if st != nil {
-		for _, t := range st {
-			file := fmt.Sprintf("%s", t)
-			line, _ := strconv.ParseInt(fmt.Sprintf("%d", t), 10, 64)
-			funcName := fmt.Sprintf("%n", t)
-
-			frames = append(frames, Frame{
-				Func: funcName,
-				Line: line,
-				File: file,
-			})
-		}
+	var stackTrace StackTrace
+	if len(stackTraces) > 0 {
+		stackTrace = stackTraces[0] // TODO
 	}
 
 	var msg string
@@ -63,6 +54,27 @@ func extractPkgError(err error) pkgError {
 	return pkgError{
 		Err:        rootErr,
 		Message:    msg,
-		StackTrace: frames,
+		StackTrace: stackTrace,
 	}
+}
+
+// convertStackTrace converts pkg/errors.StackTrace into fail.StackTrace
+func convertStackTrace(stackTrace pkgerrors.StackTrace) (frames StackTrace) {
+	if stackTrace == nil {
+		return
+	}
+
+	for _, t := range stackTrace {
+		file := fmt.Sprintf("%s", t)
+		line, _ := strconv.ParseInt(fmt.Sprintf("%d", t), 10, 64)
+		funcName := fmt.Sprintf("%n", t)
+
+		frames = append(frames, Frame{
+			Func: funcName,
+			Line: line,
+			File: file,
+		})
+	}
+
+	return
 }
