@@ -6,7 +6,10 @@ type Option func(*Error)
 // WithMessage annotates with the message.
 func WithMessage(msg string) Option {
 	return func(err *Error) {
-		err.Message = msg
+		if msg == "" {
+			return
+		}
+		err.Messages = append([]string{msg}, err.Messages...)
 	}
 }
 

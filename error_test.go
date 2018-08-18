@@ -14,7 +14,7 @@ func TestNew(t *testing.T) {
 
 	appErr := Unwrap(err)
 	assert.Equal(t, err.Error(), appErr.Err.Error())
-	assert.Equal(t, "", appErr.Message)
+	assert.Equal(t, "", appErr.FullMessage())
 	assert.NotEmpty(t, appErr.StackTrace)
 	assert.Equal(t, "TestNew", appErr.StackTrace[0].Func)
 }
@@ -25,9 +25,25 @@ func TestErrorf(t *testing.T) {
 
 	appErr := Unwrap(err)
 	assert.Equal(t, err.Error(), appErr.Err.Error())
-	assert.Equal(t, "", appErr.Message)
+	assert.Equal(t, "", appErr.FullMessage())
 	assert.NotEmpty(t, appErr.StackTrace)
 	assert.Equal(t, "TestErrorf", appErr.StackTrace[0].Func)
+}
+
+func TestError_LastMessage(t *testing.T) {
+	err := &Error{
+		Err:      errors.New("err"),
+		Messages: []string{"message 2", "message 1"},
+	}
+	assert.Equal(t, "message 2", err.LastMessage())
+}
+
+func TestError_FullMessage(t *testing.T) {
+	err := &Error{
+		Err:      errors.New("err"),
+		Messages: []string{"message 2", "message 1"},
+	}
+	assert.Equal(t, "message 2: message 1", err.FullMessage())
 }
 
 func TestWithMessage(t *testing.T) {
@@ -44,7 +60,7 @@ func TestWithMessage(t *testing.T) {
 
 		appErr := Unwrap(err1)
 		assert.Equal(t, err0, appErr.Err)
-		assert.Equal(t, err1.Error(), appErr.Message)
+		assert.Equal(t, err1.Error(), appErr.FullMessage())
 	})
 
 	t.Run("already wrapped", func(t *testing.T) {
@@ -52,23 +68,23 @@ func TestWithMessage(t *testing.T) {
 
 		err1 := &Error{
 			Err:        err0,
-			Message:    "message 1",
+			Messages:   []string{"message 1"},
 			StatusCode: 400,
 		}
 		err2 := Wrap(err1, WithMessage("message 2"))
-		assert.Equal(t, "message 2", err2.Error())
+		assert.Equal(t, "message 2: message 1", err2.Error())
 
 		{
 			appErr := Unwrap(err1)
 			assert.Equal(t, err0, appErr.Err)
-			assert.Equal(t, err1.Error(), appErr.Message)
+			assert.Equal(t, err1.Error(), appErr.FullMessage())
 			assert.Equal(t, 400, appErr.StatusCode)
 		}
 
 		{
 			appErr := Unwrap(err2)
 			assert.Equal(t, err0, appErr.Err)
-			assert.Equal(t, err2.Error(), appErr.Message)
+			assert.Equal(t, err2.Error(), appErr.FullMessage())
 			assert.Equal(t, 400, appErr.StatusCode)
 		}
 	})
@@ -87,7 +103,7 @@ func TestWithStatusCode(t *testing.T) {
 
 		appErr := Unwrap(err1)
 		assert.Equal(t, err0, appErr.Err)
-		assert.Equal(t, "", appErr.Message)
+		assert.Equal(t, "", appErr.FullMessage())
 	})
 
 	t.Run("already wrapped", func(t *testing.T) {
@@ -95,7 +111,7 @@ func TestWithStatusCode(t *testing.T) {
 
 		err1 := &Error{
 			Err:        err0,
-			Message:    "message 1",
+			Messages:   []string{"message 1"},
 			StatusCode: 400,
 		}
 		err2 := Wrap(err1, WithStatusCode(500))
@@ -103,14 +119,14 @@ func TestWithStatusCode(t *testing.T) {
 		{
 			appErr := Unwrap(err1)
 			assert.Equal(t, err0, appErr.Err)
-			assert.Equal(t, err1.Error(), appErr.Message)
+			assert.Equal(t, err1.Error(), appErr.FullMessage())
 			assert.Equal(t, 400, appErr.StatusCode)
 		}
 
 		{
 			appErr := Unwrap(err2)
 			assert.Equal(t, err0, appErr.Err)
-			assert.Equal(t, err1.Error(), appErr.Message)
+			assert.Equal(t, err1.Error(), appErr.FullMessage())
 			assert.Equal(t, 500, appErr.StatusCode)
 		}
 	})
@@ -211,7 +227,7 @@ func TestWithIgnorable(t *testing.T) {
 
 		appErr := Unwrap(err1)
 		assert.Equal(t, err0, appErr.Err)
-		assert.Equal(t, "", appErr.Message)
+		assert.Equal(t, "", appErr.FullMessage())
 	})
 
 	t.Run("already wrapped", func(t *testing.T) {
@@ -255,7 +271,7 @@ func TestWrap(t *testing.T) {
 
 		appErr := Unwrap(err1)
 		assert.Equal(t, err0, appErr.Err)
-		assert.Equal(t, "", appErr.Message)
+		assert.Equal(t, "", appErr.FullMessage())
 		assert.NotEmpty(t, appErr.StackTrace)
 		assert.Equal(t, "wrapOrigin", appErr.StackTrace[0].Func)
 	})
@@ -269,7 +285,7 @@ func TestWrap(t *testing.T) {
 
 		appErr := Unwrap(err2)
 		assert.Equal(t, err0, appErr.Err)
-		assert.Equal(t, "", appErr.Message)
+		assert.Equal(t, "", appErr.FullMessage())
 		assert.NotEmpty(t, appErr.StackTrace)
 		assert.Equal(t, "wrapOrigin", appErr.StackTrace[0].Func)
 	})
@@ -283,7 +299,7 @@ func TestWrap(t *testing.T) {
 
 			appErr := Unwrap(err1)
 			assert.Equal(t, err0, appErr.Err)
-			assert.Equal(t, "", appErr.Message)
+			assert.Equal(t, "", appErr.FullMessage())
 			assert.NotEmpty(t, appErr.StackTrace)
 			assert.Equal(t, "pkgErrorsNew", appErr.StackTrace[0].Func)
 		})
@@ -297,7 +313,7 @@ func TestWrap(t *testing.T) {
 
 			appErr := Unwrap(err2)
 			assert.Equal(t, err0, appErr.Err)
-			assert.Equal(t, "message: original", appErr.Message)
+			assert.Equal(t, "message: original", appErr.FullMessage())
 			assert.NotEmpty(t, appErr.StackTrace)
 			assert.Equal(t, "pkgErrorsWrap", appErr.StackTrace[0].Func)
 		})
@@ -307,7 +323,7 @@ func TestWrap(t *testing.T) {
 func TestAll(t *testing.T) {
 	{
 		appErr := Unwrap(errFunc3())
-		assert.Equal(t, "e2: e1: e0", appErr.Message)
+		assert.Equal(t, "e2: e1: e0", appErr.FullMessage())
 		assert.Equal(t, nil, appErr.StatusCode)
 		assert.Equal(t, false, appErr.Ignorable)
 		assert.NotEmpty(t, appErr.StackTrace)
@@ -316,7 +332,7 @@ func TestAll(t *testing.T) {
 
 	{
 		appErr := Unwrap(errFunc4())
-		assert.Equal(t, "e4", appErr.Message)
+		assert.Equal(t, "e4: e2: e1: e0", appErr.FullMessage())
 		assert.Equal(t, 500, appErr.StatusCode)
 		assert.Equal(t, true, appErr.Ignorable)
 		assert.NotEmpty(t, appErr.StackTrace)
