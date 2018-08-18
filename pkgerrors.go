@@ -1,9 +1,6 @@
 package fail
 
 import (
-	//"fmt"
-	//"strconv"
-
 	pkgerrors "github.com/pkg/errors"
 )
 
@@ -55,15 +52,10 @@ func extractPkgError(err error) pkgError {
 
 // convertStackTrace converts pkg/errors.StackTrace into fail.StackTrace
 func convertStackTrace(stackTrace pkgerrors.StackTrace) (frames StackTrace) {
-	if stackTrace == nil {
-		return
-	}
-
 	for _, t := range stackTrace {
 		if frame, ok := newFrameFrom(uintptr(t)); ok {
 			frames = append(frames, frame)
 		}
 	}
-
 	return
 }
