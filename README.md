@@ -1,5 +1,5 @@
 fail
-=========
+====
 
 [![Build Status](https://travis-ci.com/srvc/fail.svg?branch=master)](https://travis-ci.com/srvc/fail)
 [![codecov](https://codecov.io/gh/srvc/fail/branch/master/graph/badge.svg)](https://codecov.io/gh/srvc/fail)
@@ -8,17 +8,15 @@ fail
 [![Go Report Card](https://goreportcard.com/badge/github.com/srvc/fail)](https://goreportcard.com/report/github.com/srvc/fail)
 [![License](https://img.shields.io/github/license/srvc/fail.svg)](./LICENSE)
 
-Better error handling solution especially for application server.
+Better error handling solution especially for application servers.
 
 `fail` provides contextual metadata to errors.
 
 - Stack trace
-- Additional information
-- Error code (for mapping HTTP status code, gRPC status code, etc.)
-- Reportability (for an integration with error reporting service)
+- Error code (to express HTTP/gRPC status code)
+- Reportability (to integrate with error reporting services)
+- Additional information (tags and params)
 
-
-This package was forked from [`creasty/apperrors`](https://github.com/srvc/fail).
 
 Why
 ---
@@ -26,12 +24,11 @@ Why
 Since `error` type in Golang is just an interface of [`Error()`](https://golang.org/ref/spec#Errors) method, it doesn't have a stack trace at all. And these errors are likely passed from function to function, you cannot be sure where the error occurred in the first place.  
 Because of this lack of contextual metadata, debugging is a pain in the ass.
 
+<!--
 ### How different from [pkg/errors](https://github.com/pkg/errors)
 
 :memo: `fail` supports `pkg/errors`. It reuses `pkg/errors`'s stack trace data of the innermost (root) error, and converts into `fail`'s data type.
-
-TBA
-
+-->
 
 
 Create an error
@@ -41,8 +38,8 @@ Create an error
 func New(str string) error
 ```
 
-New returns an error that formats as the given text.  
-It also annotates the error with a stack trace from the point it was called
+New returns an error that formats as the given text.
+It also records the stack trace at the point it was called.
 
 ```go
 func Errorf(format string, args ...interface{}) error
@@ -50,14 +47,15 @@ func Errorf(format string, args ...interface{}) error
 
 Errorf formats according to a format specifier and returns the string
 as a value that satisfies error.  
-It also annotates the error with a stack trace from the point it was called
+It also records the stack trace at the point it was called.
 
 ```go
-func Wrap(err error) error
+func Wrap(err error, opts ...Annotator) error {
 ```
 
-Wrap returns an error annotated with a stack trace from the point it was called.  
-It returns nil if err is nil
+Wrap returns an error annotated with a stack trace from the point it was called,
+and with the specified options.  
+It returns nil if err is nil.
 
 ### Example: Creating a new error
 
@@ -82,35 +80,44 @@ Annotate an error
 -----------------
 
 ```go
-func WithMessage(msg string) Option
+func WithMessage(msg string) Annotator
 ```
 
-WithMessage annotates with the message.
+WithMessage annotates an error with the message.
 
 ```go
-func WithCode(code interface{}) Option
+func WithCode(code interface{}) Annotator
 ```
 
-WithCode annotates with the status code.
+WithCode annotates an error with the code.
 
 ```go
-func WithIgnorable() Option
+func WithIgnorable() Annotator
 ```
 
-WithIgnorable annotates with the reportability.
+WithIgnorable annotates an error with the reportability.
 
 ```go
-func WithTags(tags ...string) Option
+func WithTags(tags ...string) Annotator
 ```
 
-WithTags annotates with tags.
+WithTags annotates an error with tags.
 
 ```go
-func WithParam(key string, value interface{}) Option
-func WithParams(h H) Option
+func WithParam(key string, value interface{}) Annotator
 ```
 
-WithParam(s) annotates with key-value pairs.
+WithParam annotates an error with a key-value pair.
+
+```go
+// H represents a JSON-like key-value object.
+type H map[string]interface{}
+
+func WithParams(h H) Annotator
+```
+
+WithParams annotates an error with key-value pairs.
+
 
 ### Example: Adding all contexts
 
@@ -139,15 +146,20 @@ If the given error isn't eligible for retriving context from,
 it returns nil
 
 ```go
+// Error is an error that has contextual metadata
 type Error struct {
 	// Err is the original error (you might call it the root cause)
 	Err error
 	// Messages is an annotated description of the error
 	Messages []string
-	// Code is a status code that is desired to be used for a HTTP response
+	// Code is a status code that is desired to be contained in responses, such as HTTP Status code.
 	Code interface{}
 	// Ignorable represents whether the error should be reported to administrators
 	Ignorable bool
+	// Tags represents tags of the error which is classified errors.
+	Tags []string
+	// Params is an annotated parameters of the error.
+	Params H
 	// StackTrace is a stack trace of the original error
 	// from the point where it was created
 	StackTrace StackTrace
@@ -156,7 +168,7 @@ type Error struct {
 
 ### Example
 
-Here's a minimum executable example describing how `fail` works.
+Here's a minimum executable example illustrating how `fail` works.
 
 ```go
 package main
@@ -164,44 +176,96 @@ package main
 import (
 	"errors"
 
-	"github.com/srvc/fail"
 	"github.com/k0kubun/pp"
+	"github.com/srvc/fail"
 )
 
-func errFunc0() error {
-	return errors.New("this is the root cause")
+var myErr = fail.New("this is the root cause")
+
+//-----------------------------------------------
+type example1 struct{}
+
+func (e example1) func0() error {
+	return errors.New("error from third party")
 }
-func errFunc1() error {
-	return fail.Wrap(errFunc0())
+func (e example1) func1() error {
+	return fail.Wrap(e.func0())
 }
-func errFunc2() error {
-	return fail.Wrap(errFunc1(), fail.WithMessage("fucked up!"))
+func (e example1) func2() error {
+	return fail.Wrap(e.func1(), fail.WithMessage("fucked up!"))
 }
-func errFunc3() error {
-	return fail.Wrap(errFunc2(), fail.WithCode(500), fail.WithIgnorable())
+func (e example1) func3() error {
+	return fail.Wrap(e.func2(), fail.WithCode(500), fail.WithIgnorable())
 }
 
+//-----------------------------------------------
+type example2 struct{}
+
+func (e example2) func0() error {
+	return fail.Wrap(myErr)
+}
+func (e example2) func1() chan error {
+	c := make(chan error)
+	go func() {
+		c <- fail.Wrap(e.func0(), fail.WithTags("async"))
+	}()
+	return c
+}
+func (e example2) func2() error {
+	return fail.Wrap(<-e.func1(), fail.WithParam("key", 1))
+}
+func (e example2) func3() chan error {
+	c := make(chan error)
+	go func() {
+		c <- fail.Wrap(e.func2())
+	}()
+	return c
+}
+
+//-----------------------------------------------
 func main() {
-	err := errFunc3()
-	pp.Println(err)
+	{
+		err := (example1{}).func3()
+		pp.Println(err)
+	}
+
+	{
+		err := <-(example2{}).func3()
+		pp.Println(err)
+	}
 }
 ```
 
-```sh-session
-$ go run main.go
+```go
 &fail.Error{
-  Err:        &errors.errorString{s: "this is the root cause"},
-  Messages:   []string{"fucked up!"},
-  Code:       500,
-  Ignorable:  true,
-  StackTrace: fail.StackTrace{
-    fail.Frame{Func: "errFunc1", File: "main.go", Line: 13},
-    fail.Frame{Func: "errFunc2", File: "main.go", Line: 16},
-    fail.Frame{Func: "errFunc3", File: "main.go", Line: 19},
-    fail.Frame{Func: "main", File: "main.go", Line: 23},
-    fail.Frame{Func: "main", File: "runtime/proc.go", Line: 194},
-    fail.Frame{Func: "goexit", File: "runtime/asm_amd64.s", Line: 2198},
-  },
+	Err: &errors.errorString{s: "error from third party"},
+	Messages: []string{"fucked up!"},
+	Code:       500,
+	Ignorable:  true,
+	Tags:       []string{},
+	Params:     fail.H{},
+	StackTrace: fail.StackTrace{
+		fail.Frame{Func: "example1.func1", File: "stack/main.go", Line: 20},
+		fail.Frame{Func: "example1.func2", File: "stack/main.go", Line: 23},
+		fail.Frame{Func: "example1.func3", File: "stack/main.go", Line: 26},
+		fail.Frame{Func: "main", File: "stack/main.go", Line: 58},
+	},
+}
+&fail.Error{
+	Err: &errors.errorString{s: "this is the root cause"},
+	Messages:   []string{},
+	Code:       nil,
+	Ignorable:  false,
+	Tags:       []string{"async"},
+	Params:     {"key": 1},
+	StackTrace: fail.StackTrace{
+		fail.Frame{Func: "init", File: "stack/main.go", Line: 10},
+		fail.Frame{Func: "example2.func0", File: "stack/main.go", Line: 34},
+		fail.Frame{Func: "example2.func1.func1", File: "stack/main.go", Line: 39},
+		fail.Frame{Func: "example2.func2", File: "stack/main.go", Line: 44},
+		fail.Frame{Func: "example2.func3.func1", File: "stack/main.go", Line: 49},
+		fail.Frame{Func: "main", File: "stack/main.go", Line: 64},
+	},
 }
 ```
 

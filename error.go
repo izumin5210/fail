@@ -30,7 +30,7 @@ type Error struct {
 }
 
 // New returns an error that formats as the given text.
-// It also annotates the error with a stack trace from the point it was called
+// It also records the stack trace at the point it was called.
 func New(text string) error {
 	err := &Error{Err: errors.New(text)}
 	withStackTrace(0)(err)
@@ -39,7 +39,7 @@ func New(text string) error {
 
 // Errorf formats according to a format specifier and returns the string
 // as a value that satisfies error.
-// It also annotates the error with a stack trace from the point it was called
+// It also records the stack trace at the point it was called.
 func Errorf(format string, args ...interface{}) error {
 	err := &Error{Err: fmt.Errorf(format, args...)}
 	withStackTrace(0)(err)
