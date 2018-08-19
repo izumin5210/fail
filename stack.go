@@ -1,7 +1,6 @@
 package fail
 
 import (
-	"fmt"
 	"runtime"
 	"strings"
 )
@@ -19,10 +18,6 @@ type Frame struct {
 	Func string
 	File string
 	Line int64
-}
-
-func (f Frame) hash() string {
-	return fmt.Sprintf("%s:%s:%d", f.Func, f.File, f.Line)
 }
 
 // newFrameFrom creates Frame from the specified program counter
@@ -122,7 +117,7 @@ func mergeStackTraces(inner StackTrace, outer StackTrace) StackTrace {
 	if innerLen > outerLen {
 		overlap := 0
 		for overlap < outerLen {
-			if inner[innerLen-overlap-1].hash() != outer[outerLen-overlap-1].hash() {
+			if inner[innerLen-overlap-1] != outer[outerLen-overlap-1] {
 				break
 			}
 			overlap++
