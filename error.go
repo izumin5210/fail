@@ -82,16 +82,17 @@ func (e *Error) FullMessage() string {
 	return strings.Join(e.Messages, messageDelimiter)
 }
 
-// Wrap returns an error annotated with a stack trace from the point it was called.
-// It returns nil if err is nil
-func Wrap(err error, opts ...Option) error {
+// Wrap returns an error annotated with a stack trace from the point it was called,
+// and with the specified annotators.
+// It returns nil if err is nil.
+func Wrap(err error, annotators ...Annotator) error {
 	if err == nil {
 		return nil
 	}
 
 	appErr := wrap(err)
 
-	for _, f := range opts {
+	for _, f := range annotators {
 		f(appErr)
 	}
 

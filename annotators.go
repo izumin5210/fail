@@ -1,10 +1,10 @@
 package fail
 
-// Option annotates an errors.
-type Option func(*Error)
+// Annotator is a function that annotates an error with information.
+type Annotator func(*Error)
 
 // WithMessage annotates with the message.
-func WithMessage(msg string) Option {
+func WithMessage(msg string) Annotator {
 	return func(err *Error) {
 		if msg == "" {
 			return
@@ -14,33 +14,33 @@ func WithMessage(msg string) Option {
 }
 
 // WithCode annotates with the code.
-func WithCode(code interface{}) Option {
+func WithCode(code interface{}) Annotator {
 	return func(err *Error) {
 		err.Code = code
 	}
 }
 
 // WithIgnorable annotates with the reportability.
-func WithIgnorable() Option {
+func WithIgnorable() Annotator {
 	return func(err *Error) {
 		err.Ignorable = true
 	}
 }
 
 // WithTags annotates with tags.
-func WithTags(tags ...string) Option {
+func WithTags(tags ...string) Annotator {
 	return func(err *Error) {
 		err.Tags = append(err.Tags, tags...)
 	}
 }
 
 // WithParam annotates with a key-value pair.
-func WithParam(key string, value interface{}) Option {
+func WithParam(key string, value interface{}) Annotator {
 	return WithParams(H{key: value})
 }
 
 // WithParams annotates with key-value pairs.
-func WithParams(h H) Option {
+func WithParams(h H) Annotator {
 	return func(err *Error) {
 		err.Params = err.Params.Merge(h)
 	}
