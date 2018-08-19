@@ -45,3 +45,12 @@ func WithParams(h H) Annotator {
 		err.Params = err.Params.Merge(h)
 	}
 }
+
+// withStackTrace returns an annotator that sets a stack trace to Error
+func withStackTrace(offset int) Annotator {
+	stackTrace := newStackTrace(offset + 1)
+
+	return func(err *Error) {
+		err.StackTrace = mergeStackTraces(err.StackTrace, stackTrace)
+	}
+}

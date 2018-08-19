@@ -32,20 +32,18 @@ type Error struct {
 // New returns an error that formats as the given text.
 // It also annotates the error with a stack trace from the point it was called
 func New(text string) error {
-	return &Error{
-		Err:        errors.New(text),
-		StackTrace: newStackTrace(0),
-	}
+	err := &Error{Err: errors.New(text)}
+	withStackTrace(0)(err)
+	return err
 }
 
 // Errorf formats according to a format specifier and returns the string
 // as a value that satisfies error.
 // It also annotates the error with a stack trace from the point it was called
 func Errorf(format string, args ...interface{}) error {
-	return &Error{
-		Err:        fmt.Errorf(format, args...),
-		StackTrace: newStackTrace(0),
-	}
+	err := &Error{Err: fmt.Errorf(format, args...)}
+	withStackTrace(0)(err)
+	return err
 }
 
 // Error implements error interface
@@ -100,8 +98,6 @@ func Wrap(err error, annotators ...Annotator) error {
 }
 
 func wrap(err error) (wrappedErr *Error) {
-	stackTrace := newStackTrace(1)
-
 	pkgErr := extractPkgError(err)
 	if appErr, ok := pkgErr.Err.(*Error); ok {
 		wrappedErr = appErr.Copy()
@@ -113,7 +109,7 @@ func wrap(err error) (wrappedErr *Error) {
 		WithMessage(pkgErr.Message)(wrappedErr)
 	}
 
-	wrappedErr.StackTrace = mergeStackTraces(wrappedErr.StackTrace, stackTrace)
+	withStackTrace(1)(wrappedErr)
 
 	return
 }
