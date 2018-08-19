@@ -326,8 +326,13 @@ func TestAll(t *testing.T) {
 		assert.Equal(t, "e2: e1: e0", appErr.FullMessage())
 		assert.Equal(t, nil, appErr.Code)
 		assert.Equal(t, false, appErr.Ignorable)
-		assert.NotEmpty(t, appErr.StackTrace)
-		assert.Equal(t, "errFunc1", appErr.StackTrace[0].Func)
+		assert.Equal(t, []string{
+			"errFunc1",
+			"errFunc2",
+			"errFunc3",
+			"TestAll",
+			"tRunner",
+		}, funcNamesFromStackTrace(appErr.StackTrace))
 	}
 
 	{
@@ -335,8 +340,29 @@ func TestAll(t *testing.T) {
 		assert.Equal(t, "e4: e2: e1: e0", appErr.FullMessage())
 		assert.Equal(t, 500, appErr.Code)
 		assert.Equal(t, true, appErr.Ignorable)
-		assert.NotEmpty(t, appErr.StackTrace)
-		assert.Equal(t, "errFunc1", appErr.StackTrace[0].Func)
+		assert.Equal(t, []string{
+			"errFunc1",
+			"errFunc2",
+			"errFunc3",
+			"errFunc4",
+			"TestAll",
+			"tRunner",
+		}, funcNamesFromStackTrace(appErr.StackTrace))
+	}
+
+	{
+		appErr := Unwrap(errFunc4Goroutine())
+		assert.Equal(t, "e4: e2: e1: e0", appErr.FullMessage())
+		assert.Equal(t, 500, appErr.Code)
+		assert.Equal(t, true, appErr.Ignorable)
+		assert.Equal(t, []string{
+			"errFunc1",
+			"errFunc2",
+			"errFunc3Goroutine.func1",
+			"errFunc4Goroutine",
+			"TestAll",
+			"tRunner",
+		}, funcNamesFromStackTrace(appErr.StackTrace))
 	}
 }
 
@@ -358,4 +384,22 @@ func errFunc3() error {
 }
 func errFunc4() error {
 	return Wrap(errFunc3(), WithMessage("e4"), WithCode(500), WithIgnorable())
+}
+
+func errFunc3Goroutine() chan error {
+	c := make(chan error)
+	go func() {
+		c <- Wrap(errFunc2())
+	}()
+	return c
+}
+func errFunc4Goroutine() error {
+	return Wrap(<-errFunc3Goroutine(), WithMessage("e4"), WithCode(500), WithIgnorable())
+}
+
+func funcNamesFromStackTrace(stackTrace StackTrace) (funcNames []string) {
+	for _, frame := range stackTrace {
+		funcNames = append(funcNames, frame.Func)
+	}
+	return
 }

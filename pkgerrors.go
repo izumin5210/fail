@@ -1,9 +1,6 @@
 package fail
 
 import (
-	"fmt"
-	"strconv"
-
 	pkgerrors "github.com/pkg/errors"
 )
 
@@ -26,10 +23,11 @@ func extractPkgError(err error) pkgError {
 	}
 
 	rootErr := err
-	var st pkgerrors.StackTrace
+	var stackTraces []StackTrace
 	for {
-		if stackTrace, ok := rootErr.(traceable); ok {
-			st = stackTrace.StackTrace()
+		if t, ok := rootErr.(traceable); ok {
+			stackTrace := convertStackTrace(t.StackTrace())
+			stackTraces = append(stackTraces, stackTrace)
 		}
 
 		if cause, ok := rootErr.(causer); ok {
@@ -40,21 +38,6 @@ func extractPkgError(err error) pkgError {
 		break
 	}
 
-	var frames []Frame
-	if st != nil {
-		for _, t := range st {
-			file := fmt.Sprintf("%s", t)
-			line, _ := strconv.ParseInt(fmt.Sprintf("%d", t), 10, 64)
-			funcName := fmt.Sprintf("%n", t)
-
-			frames = append(frames, Frame{
-				Func: funcName,
-				Line: line,
-				File: file,
-			})
-		}
-	}
-
 	var msg string
 	if err.Error() != rootErr.Error() {
 		msg = err.Error()
@@ -63,6 +46,16 @@ func extractPkgError(err error) pkgError {
 	return pkgError{
 		Err:        rootErr,
 		Message:    msg,
-		StackTrace: frames,
+		StackTrace: reduceStackTraces(stackTraces),
 	}
+}
+
+// convertStackTrace converts pkg/errors.StackTrace into fail.StackTrace
+func convertStackTrace(stackTrace pkgerrors.StackTrace) (frames StackTrace) {
+	for _, t := range stackTrace {
+		if frame, ok := newFrameFrom(uintptr(t)); ok {
+			frames = append(frames, frame)
+		}
+	}
+	return
 }

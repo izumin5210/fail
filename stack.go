@@ -20,6 +20,27 @@ type Frame struct {
 	Line int64
 }
 
+// newFrameFrom creates Frame from the specified program counter
+func newFrameFrom(pc uintptr) (f Frame, ok bool) {
+	fpc := runtime.FuncForPC(pc)
+	if fpc == nil {
+		return
+	}
+
+	file, line := fpc.FileLine(pc)
+
+	f.Func = funcname(fpc.Name())
+	f.File = trimGOPATH(fpc.Name(), file)
+	f.Line = int64(line)
+
+	if strings.HasPrefix(f.File, "runtime/") {
+		return
+	}
+
+	ok = true
+	return
+}
+
 // newStackTrace creates StackTrace by callers
 func newStackTrace(offset int) StackTrace {
 	pcs := make([]uintptr, stackMaxSize)
@@ -29,19 +50,10 @@ func newStackTrace(offset int) StackTrace {
 	frames := make([]Frame, n)
 
 	for _, pc := range pcs[0:n] {
-		f := runtime.FuncForPC(pc)
-		if f == nil {
-			continue
+		if f, ok := newFrameFrom(pc); ok {
+			frames[i] = f
+			i++
 		}
-
-		file, line := f.FileLine(pc)
-
-		frames[i] = Frame{
-			Func: funcname(f.Name()),
-			File: trimGOPATH(f.Name(), file),
-			Line: int64(line),
-		}
-		i++
 	}
 
 	return frames[:i]
@@ -95,4 +107,35 @@ func trimGOPATH(name, file string) string {
 	// get back to 0 or trim the leading separator
 	file = file[i+len(sep):]
 	return file
+}
+
+// mergeStackTraces merges two stack traces
+func mergeStackTraces(inner StackTrace, outer StackTrace) StackTrace {
+	innerLen := len(inner)
+	outerLen := len(outer)
+
+	if innerLen > outerLen {
+		overlap := 0
+		for overlap < outerLen {
+			if inner[innerLen-overlap-1] != outer[outerLen-overlap-1] {
+				break
+			}
+			overlap++
+		}
+
+		if overlap > 0 {
+			return append(inner[:innerLen-overlap], outer...)
+		}
+	}
+
+	return append(inner, outer...)
+}
+
+// reduceStackTraces incrementally merges multiple stack traces
+// and returns a merged stack trace
+func reduceStackTraces(stackTraces []StackTrace) (merged StackTrace) {
+	for i := len(stackTraces) - 1; i >= 0; i-- {
+		merged = mergeStackTraces(merged, stackTraces[i])
+	}
+	return
 }

@@ -98,24 +98,23 @@ func Wrap(err error, opts ...Option) error {
 	return appErr
 }
 
-func wrap(err error) *Error {
+func wrap(err error) (wrappedErr *Error) {
+	stackTrace := newStackTrace(1)
+
 	pkgErr := extractPkgError(err)
-
 	if appErr, ok := pkgErr.Err.(*Error); ok {
-		return appErr.Copy()
+		wrappedErr = appErr.Copy()
+	} else {
+		wrappedErr = &Error{
+			Err:        pkgErr.Err,
+			StackTrace: pkgErr.StackTrace,
+		}
+		WithMessage(pkgErr.Message)(wrappedErr)
 	}
 
-	stackTrace := pkgErr.StackTrace
-	if stackTrace == nil {
-		stackTrace = newStackTrace(1)
-	}
+	wrappedErr.StackTrace = mergeStackTraces(wrappedErr.StackTrace, stackTrace)
 
-	wrappedErr := &Error{
-		Err:        pkgErr.Err,
-		StackTrace: stackTrace,
-	}
-	WithMessage(pkgErr.Message)(wrappedErr)
-	return wrappedErr
+	return
 }
 
 // Unwrap extracts an underlying *fail.Error from an error.
