@@ -46,12 +46,11 @@ func Errorf(format string, args ...interface{}) error {
 	return err
 }
 
-// Error implements error interface
+// Error implements error interface.
+// It returns a string of messages and the root error concatenated with ": ".
 func (e *Error) Error() string {
-	if message := e.FullMessage(); message != "" {
-		return message
-	}
-	return e.Err.Error()
+	messages := append(e.Messages, e.Err.Error())
+	return strings.Join(messages, messageDelimiter)
 }
 
 // Copy creates a copy of the current object
@@ -75,9 +74,10 @@ func (e *Error) LastMessage() string {
 	return e.Messages[0]
 }
 
-// FullMessage returns a string of messages concatenated with ": "
+// FullMessage is marked as deprecated in favor of `Error`.
+// This method will be removed in the next major release.
 func (e *Error) FullMessage() string {
-	return strings.Join(e.Messages, messageDelimiter)
+	return e.Error()
 }
 
 // Wrap returns an error annotated with a stack trace from the point it was called,

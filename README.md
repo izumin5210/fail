@@ -50,7 +50,7 @@ as a value that satisfies error.
 It also records the stack trace at the point it was called.
 
 ```go
-func Wrap(err error, opts ...Annotator) error {
+func Wrap(err error, annotators ...Annotator) error
 ```
 
 Wrap returns an error annotated with a stack trace from the point it was called,
