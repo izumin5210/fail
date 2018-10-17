@@ -1,6 +1,8 @@
 package fail
 
 import (
+	"strings"
+
 	pkgerrors "github.com/pkg/errors"
 )
 
@@ -9,6 +11,10 @@ type pkgError struct {
 	Message    string
 	StackTrace StackTrace
 }
+
+const (
+	pkgErrorsMessageDelimiter = ": "
+)
 
 // extractPkgError extracts the innermost error from the given error.
 // It converts the stack trace that is annotated by pkg/errors into fail.StackTrace.
@@ -39,8 +45,8 @@ func extractPkgError(err error) pkgError {
 	}
 
 	var msg string
-	if err.Error() != rootErr.Error() {
-		msg = err.Error()
+	if strings.HasSuffix(err.Error(), pkgErrorsMessageDelimiter+rootErr.Error()) {
+		msg = strings.TrimSuffix(err.Error(), pkgErrorsMessageDelimiter+rootErr.Error())
 	}
 
 	return pkgError{
