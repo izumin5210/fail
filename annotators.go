@@ -1,5 +1,7 @@
 package fail
 
+import "fmt"
+
 // Annotator is a function that annotates an error with information
 type Annotator func(*Error)
 
@@ -11,6 +13,11 @@ func WithMessage(msg string) Annotator {
 		}
 		err.Messages = append([]string{msg}, err.Messages...)
 	}
+}
+
+// WithMessagef annotates an error with the formatted message
+func WithMessagef(msg string, args ...interface{}) Annotator {
+	return WithMessage(fmt.Sprintf(msg, args...))
 }
 
 // WithCode annotates an error with the code

@@ -86,6 +86,12 @@ func WithMessage(msg string) Annotator
 WithMessage annotates an error with the message.
 
 ```go
+func WithMessagef(msg string, args ...interface{}) Annotator
+```
+
+WithMessagef annotates an error with the formatted message.
+
+```go
 func WithCode(code interface{}) Annotator
 ```
 

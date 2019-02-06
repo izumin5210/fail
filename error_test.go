@@ -88,6 +88,50 @@ func TestWithMessage(t *testing.T) {
 	})
 }
 
+func TestWithMessagef(t *testing.T) {
+	t.Run("nil", func(t *testing.T) {
+		err := Wrap(nil, WithMessagef("message %d", 1))
+		assert.Equal(t, nil, err)
+	})
+
+	t.Run("bare", func(t *testing.T) {
+		err0 := errors.New("origin")
+
+		err1 := Wrap(err0, WithMessagef("message %d", 1))
+		assert.Equal(t, "message 1: origin", err1.Error())
+
+		appErr := Unwrap(err1)
+		assert.Equal(t, err0, appErr.Err)
+		assert.Equal(t, err1.Error(), appErr.Error())
+	})
+
+	t.Run("already wrapped", func(t *testing.T) {
+		err0 := errors.New("origin")
+
+		err1 := &Error{
+			Err:      err0,
+			Messages: []string{"message 1"},
+			Code:     400,
+		}
+		err2 := Wrap(err1, WithMessagef("message %d", 2))
+		assert.Equal(t, "message 2: message 1: origin", err2.Error())
+
+		{
+			appErr := Unwrap(err1)
+			assert.Equal(t, err0, appErr.Err)
+			assert.Equal(t, err1.Error(), appErr.Error())
+			assert.Equal(t, 400, appErr.Code)
+		}
+
+		{
+			appErr := Unwrap(err2)
+			assert.Equal(t, err0, appErr.Err)
+			assert.Equal(t, err2.Error(), appErr.Error())
+			assert.Equal(t, 400, appErr.Code)
+		}
+	})
+}
+
 func TestWithCode(t *testing.T) {
 	t.Run("nil", func(t *testing.T) {
 		err := Wrap(nil, WithCode(200))
