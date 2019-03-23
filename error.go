@@ -101,14 +101,15 @@ func wrap(err error) (wrappedErr *Error) {
 	pkgErr := extractPkgError(err)
 	if appErr, ok := pkgErr.Err.(*Error); ok {
 		wrappedErr = appErr.Copy()
+		wrappedErr.StackTrace = mergeStackTraces(appErr.StackTrace, pkgErr.StackTrace)
 	} else {
 		wrappedErr = &Error{
 			Err:        pkgErr.Err,
 			StackTrace: pkgErr.StackTrace,
 		}
-		WithMessage(pkgErr.Message)(wrappedErr)
 	}
 
+	WithMessage(pkgErr.Message)(wrappedErr)
 	withStackTrace(1)(wrappedErr)
 
 	return
@@ -117,8 +118,20 @@ func wrap(err error) (wrappedErr *Error) {
 // Unwrap extracts an underlying *fail.Error from an error.
 // If the given error isn't eligible for retriving context from,
 // it returns nil
-func Unwrap(err error) *Error {
+func Unwrap(err error) (unwrapped *Error) {
+	if err == nil {
+		return nil
+	}
+
 	if appErr, ok := err.(*Error); ok {
+		return appErr
+	}
+
+	pkgErr := extractPkgError(err)
+	if appErr, ok := pkgErr.Err.(*Error); ok {
+		appErr = appErr.Copy()
+		appErr.StackTrace = mergeStackTraces(appErr.StackTrace, pkgErr.StackTrace)
+		WithMessage(pkgErr.Message)(appErr)
 		return appErr
 	}
 
