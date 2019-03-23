@@ -406,6 +406,19 @@ func TestAll(t *testing.T) {
 			"tRunner",
 		}, funcNamesFromStackTrace(appErr.StackTrace))
 	}
+
+	{
+		appErr := Unwrap(errFunc0e1p2p3f4p())
+		assert.Equal(t, "4p: 2p: 1p: 0e", appErr.Error())
+		assert.Equal(t, []string{
+			"errFunc0e1p",
+			"errFunc0e1p2p",
+			"errFunc0e1p2p3f",
+			"errFunc0e1p2p3f4p",
+			"TestAll",
+			"tRunner",
+		}, funcNamesFromStackTrace(appErr.StackTrace))
+	}
 }
 
 func wrapOrigin(err error) error {
@@ -456,4 +469,8 @@ func errFunc0e1p2p3fg() chan error {
 }
 func errFunc0e1p2p3fg4f() error {
 	return Wrap(<-errFunc0e1p2p3fg(), WithMessage("4f"), WithCode(500), WithIgnorable())
+}
+
+func errFunc0e1p2p3f4p() error {
+	return pkgerrors.Wrap(errFunc0e1p2p3f(), "4p")
 }
