@@ -16,11 +16,36 @@ const (
 	pkgErrorsMessageDelimiter = ": "
 )
 
+// convertPkgError converts pkg/errors to fail.
+// It returns nil if the error is not derived from pkg/errors.
+func convertPkgError(err error) (convertedErr *Error) {
+	pkgErr := extractPkgError(err)
+	if pkgErr == nil {
+		return
+	}
+
+	if appErr, ok := pkgErr.Err.(*Error); ok {
+		convertedErr = appErr.Copy()
+		convertedErr.StackTrace = mergeStackTraces(appErr.StackTrace, pkgErr.StackTrace)
+	} else {
+		convertedErr = &Error{
+			Err:        pkgErr.Err,
+			StackTrace: pkgErr.StackTrace,
+		}
+	}
+
+	for i := len(pkgErr.Messages) - 1; i >= 0; i-- {
+		WithMessage(pkgErr.Messages[i])(convertedErr)
+	}
+
+	return
+}
+
 // extractPkgError extracts the innermost error from the given error.
 // It converts the stack trace that is annotated by pkg/errors into fail.StackTrace.
 // If the error doesn't have a stack trace or a causer of pkg/errors,
 // it simply returns the original error
-func extractPkgError(err error) pkgError {
+func extractPkgError(err error) *pkgError {
 	type traceable interface {
 		StackTrace() pkgerrors.StackTrace
 	}
@@ -54,6 +79,10 @@ func extractPkgError(err error) pkgError {
 		break
 	}
 
+	if len(stackTraces) == 0 {
+		return nil
+	}
+
 	// Extract annotated messages by removing the trailing message.
 	//
 	// w2 := errors.Wrap(e0, "message 2") // w2.Error() == "mesasge 2: message 1: e0"
@@ -72,13 +101,13 @@ func extractPkgError(err error) pkgError {
 	trailingMessage := rootErr.Error()
 	for i := len(messages) - 1; i >= 0; i-- {
 		if strings.HasSuffix(messages[i], pkgErrorsMessageDelimiter+trailingMessage) {
-			trimed := strings.TrimSuffix(messages[i], pkgErrorsMessageDelimiter+trailingMessage)
+			trimmed := strings.TrimSuffix(messages[i], pkgErrorsMessageDelimiter+trailingMessage)
 			trailingMessage = messages[i]
-			messages[i] = trimed
+			messages[i] = trimmed
 		}
 	}
 
-	return pkgError{
+	return &pkgError{
 		Err:        rootErr,
 		Messages:   messages,
 		StackTrace: reduceStackTraces(stackTraces),

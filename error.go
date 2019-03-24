@@ -88,55 +88,36 @@ func Wrap(err error, annotators ...Annotator) error {
 		return nil
 	}
 
-	appErr := wrap(err)
-
-	for _, f := range annotators {
-		f(appErr)
-	}
-
-	return appErr
-}
-
-func wrap(err error) (wrappedErr *Error) {
-	pkgErr := extractPkgError(err)
-	if appErr, ok := pkgErr.Err.(*Error); ok {
-		wrappedErr = appErr.Copy()
-		wrappedErr.StackTrace = mergeStackTraces(appErr.StackTrace, pkgErr.StackTrace)
-	} else {
-		wrappedErr = &Error{
-			Err:        pkgErr.Err,
-			StackTrace: pkgErr.StackTrace,
+	failErr := Unwrap(err)
+	if failErr == nil {
+		failErr = &Error{
+			Err: err,
 		}
 	}
 
-	for i := len(pkgErr.Messages) - 1; i >= 0; i-- {
-		WithMessage(pkgErr.Messages[i])(wrappedErr)
-	}
-	withStackTrace(1)(wrappedErr)
+	withStackTrace(0)(failErr)
 
-	return
+	for _, f := range annotators {
+		f(failErr)
+	}
+
+	return failErr
 }
 
 // Unwrap extracts an underlying *fail.Error from an error.
 // If the given error isn't eligible for retriving context from,
 // it returns nil
-func Unwrap(err error) (unwrapped *Error) {
+func Unwrap(err error) *Error {
 	if err == nil {
 		return nil
 	}
 
-	if appErr, ok := err.(*Error); ok {
-		return appErr
+	if failErr, ok := err.(*Error); ok {
+		return failErr.Copy()
 	}
 
-	pkgErr := extractPkgError(err)
-	if appErr, ok := pkgErr.Err.(*Error); ok {
-		appErr = appErr.Copy()
-		appErr.StackTrace = mergeStackTraces(appErr.StackTrace, pkgErr.StackTrace)
-		for i := len(pkgErr.Messages) - 1; i >= 0; i-- {
-			WithMessage(pkgErr.Messages[i])(appErr)
-		}
-		return appErr
+	if failErr := convertPkgError(err); failErr != nil {
+		return failErr
 	}
 
 	return nil

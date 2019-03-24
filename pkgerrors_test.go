@@ -10,6 +10,16 @@ import (
 )
 
 func TestExtractPkgError(t *testing.T) {
+	t.Run("nil", func(t *testing.T) {
+		pkgErr := extractPkgError(nil)
+		assert.Nil(t, pkgErr)
+	})
+
+	t.Run("not a pkg/errors", func(t *testing.T) {
+		pkgErr := extractPkgError(errors.New("error"))
+		assert.Nil(t, pkgErr)
+	})
+
 	t.Run("pkg/errors.New", func(t *testing.T) {
 		err := pkgErrorsNew("message")
 
