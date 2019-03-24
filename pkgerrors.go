@@ -8,7 +8,7 @@ import (
 
 type pkgError struct {
 	Err        error
-	Message    string
+	Messages   []string
 	StackTrace StackTrace
 }
 
@@ -28,8 +28,12 @@ func extractPkgError(err error) pkgError {
 		Cause() error
 	}
 
-	rootErr := err
 	var stackTraces []StackTrace
+	var messages []string
+	var lastMessage string
+
+	// Retrive stacks and trace back the root cause
+	rootErr := err
 	for {
 		if t, ok := rootErr.(traceable); ok {
 			stackTrace := convertStackTrace(t.StackTrace())
@@ -37,6 +41,12 @@ func extractPkgError(err error) pkgError {
 		}
 
 		if cause, ok := rootErr.(causer); ok {
+			msg := rootErr.Error()
+			if lastMessage != msg {
+				lastMessage = msg
+				messages = append(messages, msg)
+			}
+
 			rootErr = cause.Cause()
 			continue
 		}
@@ -44,14 +54,33 @@ func extractPkgError(err error) pkgError {
 		break
 	}
 
-	var msg string
-	if strings.HasSuffix(err.Error(), pkgErrorsMessageDelimiter+rootErr.Error()) {
-		msg = strings.TrimSuffix(err.Error(), pkgErrorsMessageDelimiter+rootErr.Error())
+	// Extract annotated messages by removing the trailing message.
+	//
+	// w2 := errors.Wrap(e0, "message 2") // w2.Error() == "mesasge 2: message 1: e0"
+	// w1 := errors.Wrap(e0, "message 1") // w1.Error() ==            "message 1: e0"
+	// e0 := errors.New("e0")             // e0.Error() ==                       "e0"
+	//
+	//                       "e0"
+	//                          \
+	//                           '-.
+	//                              \
+	//            "message 1: e0" : "e0" --> ": e0" --> "messages 1"
+	//                          \
+	//                           '-.
+	//                              \
+	// "mesasge 2: message 1: e0" : "message 1: e0" --> ": message 1: e0" --> "messages 2"
+	trailingMessage := rootErr.Error()
+	for i := len(messages) - 1; i >= 0; i-- {
+		if strings.HasSuffix(messages[i], pkgErrorsMessageDelimiter+trailingMessage) {
+			trimed := strings.TrimSuffix(messages[i], pkgErrorsMessageDelimiter+trailingMessage)
+			trailingMessage = messages[i]
+			messages[i] = trimed
+		}
 	}
 
 	return pkgError{
 		Err:        rootErr,
-		Message:    msg,
+		Messages:   messages,
 		StackTrace: reduceStackTraces(stackTraces),
 	}
 }

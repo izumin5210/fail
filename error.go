@@ -109,7 +109,9 @@ func wrap(err error) (wrappedErr *Error) {
 		}
 	}
 
-	WithMessage(pkgErr.Message)(wrappedErr)
+	for i := len(pkgErr.Messages) - 1; i >= 0; i-- {
+		WithMessage(pkgErr.Messages[i])(wrappedErr)
+	}
 	withStackTrace(1)(wrappedErr)
 
 	return
@@ -131,7 +133,9 @@ func Unwrap(err error) (unwrapped *Error) {
 	if appErr, ok := pkgErr.Err.(*Error); ok {
 		appErr = appErr.Copy()
 		appErr.StackTrace = mergeStackTraces(appErr.StackTrace, pkgErr.StackTrace)
-		WithMessage(pkgErr.Message)(appErr)
+		for i := len(pkgErr.Messages) - 1; i >= 0; i-- {
+			WithMessage(pkgErr.Messages[i])(appErr)
+		}
 		return appErr
 	}
 
