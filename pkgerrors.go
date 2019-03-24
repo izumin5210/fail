@@ -98,18 +98,22 @@ func extractPkgError(err error) *pkgError {
 	//                           '-.
 	//                              \
 	// "mesasge 2: message 1: e0" : "message 1: e0" --> ": message 1: e0" --> "messages 2"
+	var cleanedMessages []string
 	trailingMessage := rootErr.Error()
 	for i := len(messages) - 1; i >= 0; i-- {
 		if strings.HasSuffix(messages[i], pkgErrorsMessageDelimiter+trailingMessage) {
 			trimmed := strings.TrimSuffix(messages[i], pkgErrorsMessageDelimiter+trailingMessage)
 			trailingMessage = messages[i]
-			messages[i] = trimmed
+
+			if trimmed != "" { // Discard empty messages
+				cleanedMessages = append([]string{trimmed}, cleanedMessages...)
+			}
 		}
 	}
 
 	return &pkgError{
 		Err:        rootErr,
-		Messages:   messages,
+		Messages:   cleanedMessages,
 		StackTrace: reduceStackTraces(stackTraces),
 	}
 }

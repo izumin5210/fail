@@ -56,6 +56,34 @@ func TestExtractPkgError(t *testing.T) {
 			assert.NotEmpty(t, pkgErr.StackTrace)
 			assert.Equal(t, "pkgErrorsWrap", pkgErr.StackTrace[0].Func)
 		})
+
+		t.Run("multiple wrap with an empty message (first)", func(t *testing.T) {
+			err0 := errors.New("error")
+			err1 := pkgErrorsWrap(err0, "")
+			err2 := pkgErrorsWrap(err1, "message 2")
+			err3 := pkgErrorsWrap(err2, "message 3")
+
+			pkgErr := extractPkgError(err3)
+			assert.NotNil(t, pkgErr)
+			assert.Equal(t, []string{"message 3", "message 2"}, pkgErr.Messages)
+			assert.Equal(t, err0, pkgErr.Err)
+			assert.NotEmpty(t, pkgErr.StackTrace)
+			assert.Equal(t, "pkgErrorsWrap", pkgErr.StackTrace[0].Func)
+		})
+
+		t.Run("multiple wrap with an empty message (middle)", func(t *testing.T) {
+			err0 := errors.New("error")
+			err1 := pkgErrorsWrap(err0, "message 1")
+			err2 := pkgErrorsWrap(err1, "")
+			err3 := pkgErrorsWrap(err2, "message 3")
+
+			pkgErr := extractPkgError(err3)
+			assert.NotNil(t, pkgErr)
+			assert.Equal(t, []string{"message 3", "message 1"}, pkgErr.Messages)
+			assert.Equal(t, err0, pkgErr.Err)
+			assert.NotEmpty(t, pkgErr.StackTrace)
+			assert.Equal(t, "pkgErrorsWrap", pkgErr.StackTrace[0].Func)
+		})
 	})
 }
 
