@@ -87,6 +87,57 @@ func TestExtractPkgError(t *testing.T) {
 	})
 }
 
+func TestConvertPkgError(t *testing.T) {
+	t.Run("nil", func(t *testing.T) {
+		failErr := convertPkgError(nil)
+		assert.Nil(t, failErr)
+	})
+
+	t.Run("not a pkg/errors", func(t *testing.T) {
+		failErr := convertPkgError(errors.New("error"))
+		assert.Nil(t, failErr)
+	})
+
+	t.Run("wrap", func(t *testing.T) {
+		err0 := errors.New("error")
+		err1 := pkgErrorsWrap(err0, "message 1")
+		err2 := pkgErrorsWrap(err1, "message 2")
+
+		failErr := convertPkgError(err2)
+		assert.NotNil(t, failErr)
+		assert.Equal(t, []string{"message 2", "message 1"}, failErr.Messages)
+		assert.Equal(t, err0, failErr.Err)
+		assert.NotEmpty(t, failErr.StackTrace)
+		assert.Equal(t, "pkgErrorsWrap", failErr.StackTrace[0].Func)
+	})
+
+	t.Run("mixed (inner most)", func(t *testing.T) {
+		err0 := New("error")
+		err1 := Wrap(err0, WithMessage("message 1"))
+		err2 := pkgErrorsWrap(err1, "message 2")
+
+		failErr := convertPkgError(err2)
+		assert.NotNil(t, failErr)
+		assert.Equal(t, []string{"message 2", "message 1"}, failErr.Messages)
+		assert.Equal(t, err0.Error(), failErr.Err.Error())
+		assert.NotEmpty(t, failErr.StackTrace)
+	})
+
+	t.Run("mixed (middle)", func(t *testing.T) {
+		err0 := errors.New("error")
+		err1 := pkgErrorsWrap(err0, "message 1")
+		err2 := wrapOrigin(err1)
+		err3 := pkgErrorsWrap(err2, "message 2")
+
+		failErr := convertPkgError(err3)
+		assert.NotNil(t, failErr)
+		assert.Equal(t, []string{"message 2", "message 1"}, failErr.Messages)
+		assert.Equal(t, err0, failErr.Err)
+		assert.NotEmpty(t, failErr.StackTrace)
+		assert.Equal(t, "pkgErrorsWrap", failErr.StackTrace[0].Func)
+	})
+}
+
 func pkgErrorsNew(msg string) error {
 	return pkgerrors.New(msg)
 }
