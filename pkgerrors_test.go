@@ -85,6 +85,17 @@ func TestExtractPkgError(t *testing.T) {
 			assert.Equal(t, "pkgErrorsWrap", pkgErr.StackTrace[0].Func)
 		})
 	})
+
+	t.Run("pkg/errors.WithMessage", func(t *testing.T) {
+		err0 := errors.New("error")
+		err1 := pkgerrors.WithMessage(err0, "message")
+
+		pkgErr := extractPkgError(err1)
+		assert.NotNil(t, pkgErr)
+		assert.Equal(t, []string{"message"}, pkgErr.Messages)
+		assert.Equal(t, err0, pkgErr.Err)
+		assert.Empty(t, pkgErr.StackTrace)
+	})
 }
 
 func TestConvertPkgError(t *testing.T) {

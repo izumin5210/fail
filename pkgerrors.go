@@ -79,7 +79,7 @@ func extractPkgError(err error) *pkgError {
 		break
 	}
 
-	if len(stackTraces) == 0 {
+	if len(stackTraces) == 0 && rootErr == err {
 		return nil
 	}
 
