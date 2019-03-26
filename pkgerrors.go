@@ -24,9 +24,9 @@ func convertPkgError(err error) (convertedErr *Error) {
 		return
 	}
 
-	if appErr, ok := pkgErr.Err.(*Error); ok {
-		convertedErr = appErr.Copy()
-		convertedErr.StackTrace = mergeStackTraces(appErr.StackTrace, pkgErr.StackTrace)
+	if failErr, ok := pkgErr.Err.(*Error); ok {
+		convertedErr = failErr.Copy()
+		convertedErr.StackTrace = mergeStackTraces(failErr.StackTrace, pkgErr.StackTrace)
 	} else {
 		convertedErr = &Error{
 			Err:        pkgErr.Err,
