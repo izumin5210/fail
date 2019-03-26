@@ -20,18 +20,11 @@ type Frame struct {
 	Line int64
 }
 
-// newFrameFrom creates Frame from the specified program counter
-func newFrameFrom(pc uintptr) (f Frame, ok bool) {
-	fpc := runtime.FuncForPC(pc)
-	if fpc == nil {
-		return
-	}
-
-	file, line := fpc.FileLine(pc)
-
-	f.Func = funcname(fpc.Name())
-	f.File = trimGOPATH(fpc.Name(), file)
-	f.Line = int64(line)
+// newFrameFromRuntimeFrame creates Frame from the specified runtime.Frame
+func newFrameFromRuntimeFrame(rf runtime.Frame) (f Frame, ok bool) {
+	f.Func = funcname(rf.Function)
+	f.File = trimGOPATH(rf.Function, rf.File)
+	f.Line = int64(rf.Line)
 
 	if strings.HasPrefix(f.File, "runtime/") {
 		return
@@ -45,18 +38,24 @@ func newFrameFrom(pc uintptr) (f Frame, ok bool) {
 func newStackTrace(offset int) StackTrace {
 	pcs := make([]uintptr, stackMaxSize)
 	n := runtime.Callers(stackBaseOffset+offset, pcs[:])
+	return newStackTraceFromPCs(pcs[:n])
+}
 
-	i := 0
-	frames := make([]Frame, n)
+// newStackTraceFromPCs creates StackTrace from program counters
+func newStackTraceFromPCs(pcs []uintptr) (frames StackTrace) {
+	runtimeFrames := runtime.CallersFrames(pcs)
 
-	for _, pc := range pcs[0:n] {
-		if f, ok := newFrameFrom(pc); ok {
-			frames[i] = f
-			i++
+	for {
+		rf, more := runtimeFrames.Next()
+		if frame, ok := newFrameFromRuntimeFrame(rf); ok {
+			frames = append(frames, frame)
+		}
+		if !more {
+			break
 		}
 	}
 
-	return frames[:i]
+	return frames
 }
 
 // funcname removes the path prefix component of a function's name reported by func.Name().

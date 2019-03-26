@@ -57,11 +57,10 @@ func extractPkgError(err error) pkgError {
 }
 
 // convertStackTrace converts pkg/errors.StackTrace into fail.StackTrace
-func convertStackTrace(stackTrace pkgerrors.StackTrace) (frames StackTrace) {
-	for _, t := range stackTrace {
-		if frame, ok := newFrameFrom(uintptr(t)); ok {
-			frames = append(frames, frame)
-		}
+func convertStackTrace(stackTrace pkgerrors.StackTrace) StackTrace {
+	pcs := make([]uintptr, len(stackTrace))
+	for i, t := range stackTrace {
+		pcs[i] = uintptr(t)
 	}
-	return
+	return newStackTraceFromPCs(pcs)
 }
