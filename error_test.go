@@ -363,80 +363,93 @@ func TestWrap(t *testing.T) {
 }
 
 func TestAll(t *testing.T) {
-	{
-		appErr := Unwrap(errFunc3())
-		assert.Equal(t, "e2: e1: e0", appErr.Error())
+	t.Run("e-p-p-f", func(t *testing.T) {
+		appErr := Unwrap(errFunc0e1p2p3f())
+		assert.Equal(t, "2p: 1p: 0e", appErr.Error())
 		assert.Equal(t, nil, appErr.Code)
 		assert.Equal(t, false, appErr.Ignorable)
 		assert.Equal(t, []string{
-			"errFunc1",
-			"errFunc2",
-			"errFunc3",
-			"TestAll",
+			"errFunc0e1p",
+			"errFunc0e1p2p",
+			"errFunc0e1p2p3f",
+			"TestAll.func1",
 			"tRunner",
 		}, funcNamesFromStackTrace(appErr.StackTrace))
-	}
+	})
 
-	{
-		appErr := Unwrap(errFunc4())
-		assert.Equal(t, "e4: e2: e1: e0", appErr.Error())
+	t.Run("e-p-p-f-f", func(t *testing.T) {
+		appErr := Unwrap(errFunc0e1p2p3f4f())
+		assert.Equal(t, "4f: 2p: 1p: 0e", appErr.Error())
 		assert.Equal(t, 500, appErr.Code)
 		assert.Equal(t, true, appErr.Ignorable)
 		assert.Equal(t, []string{
-			"errFunc1",
-			"errFunc2",
-			"errFunc3",
-			"errFunc4",
-			"TestAll",
+			"errFunc0e1p",
+			"errFunc0e1p2p",
+			"errFunc0e1p2p3f",
+			"errFunc0e1p2p3f4f",
+			"TestAll.func2",
 			"tRunner",
 		}, funcNamesFromStackTrace(appErr.StackTrace))
-	}
+	})
 
-	{
-		appErr := Unwrap(errFunc4Goroutine())
-		assert.Equal(t, "e4: e2: e1: e0", appErr.Error())
+	t.Run("e-p-p-fg-f", func(t *testing.T) {
+		appErr := Unwrap(errFunc0e1p2p3fg4f())
+		assert.Equal(t, "4f: 2p: 1p: 0e", appErr.Error())
 		assert.Equal(t, 500, appErr.Code)
 		assert.Equal(t, true, appErr.Ignorable)
 		assert.Equal(t, []string{
-			"errFunc1",
-			"errFunc2",
-			"errFunc3Goroutine.func1",
-			"errFunc4Goroutine",
-			"TestAll",
+			"errFunc0e1p",
+			"errFunc0e1p2p",
+			"errFunc0e1p2p3fg.func1",
+			"errFunc0e1p2p3fg4f",
+			"TestAll.func3",
 			"tRunner",
 		}, funcNamesFromStackTrace(appErr.StackTrace))
-	}
+	})
+
+	t.Run("e-p-p-f-p", func(t *testing.T) {
+		appErr := Unwrap(errFunc0e1p2p3f4p())
+		assert.Equal(t, "4p: 2p: 1p: 0e", appErr.Error())
+		assert.Equal(t, []string{
+			"errFunc0e1p",
+			"errFunc0e1p2p",
+			"errFunc0e1p2p3f",
+			"errFunc0e1p2p3f4p",
+			"TestAll.func4",
+			"tRunner",
+		}, funcNamesFromStackTrace(appErr.StackTrace))
+	})
+
+	t.Run("e-p-p-fg-f-p", func(t *testing.T) {
+		appErr := Unwrap(errFunc0e1p2p3fg4f5p())
+		assert.Equal(t, "5p: 4f: 2p: 1p: 0e", appErr.Error())
+		assert.Equal(t, []string{
+			"errFunc0e1p",
+			"errFunc0e1p2p",
+			"errFunc0e1p2p3fg.func1",
+			"errFunc0e1p2p3fg4f",
+			"errFunc0e1p2p3fg4f5p",
+			"TestAll.func5",
+			"tRunner",
+		}, funcNamesFromStackTrace(appErr.StackTrace))
+	})
+
+	t.Run("e-p-p-pg-p", func(t *testing.T) {
+		appErr := Unwrap(errFunc0e1p2p3pg4p())
+		assert.Equal(t, "4p: 3pg: 2p: 1p: 0e", appErr.Error())
+		assert.Equal(t, []string{
+			"errFunc0e1p",
+			"errFunc0e1p2p",
+			"errFunc0e1p2p3pg.func1",
+			"errFunc0e1p2p3pg4p",
+			"TestAll.func6",
+			"tRunner",
+		}, funcNamesFromStackTrace(appErr.StackTrace))
+	})
 }
 
 func wrapOrigin(err error) error {
 	return Wrap(err)
-}
-
-func errFunc0() error {
-	return errors.New("e0")
-}
-func errFunc1() error {
-	return pkgerrors.Wrap(errFunc0(), "e1")
-}
-func errFunc2() error {
-	return pkgerrors.Wrap(errFunc1(), "e2")
-}
-func errFunc3() error {
-	return Wrap(errFunc2())
-}
-func errFunc4() error {
-	return Wrap(errFunc3(), WithMessage("e4"), WithCode(500), WithIgnorable())
-}
-
-func errFunc3Goroutine() chan error {
-	c := make(chan error)
-	go func() {
-		c <- Wrap(errFunc2())
-	}()
-	return c
-}
-func errFunc4Goroutine() error {
-	return Wrap(<-errFunc3Goroutine(), WithMessage("e4"), WithCode(500), WithIgnorable())
 }
 
 func funcNamesFromStackTrace(stackTrace StackTrace) (funcNames []string) {
@@ -444,4 +457,61 @@ func funcNamesFromStackTrace(stackTrace StackTrace) (funcNames []string) {
 		funcNames = append(funcNames, frame.Func)
 	}
 	return
+}
+
+// Error functions
+//
+// How to read: `errFunc0e1p2p3fg4f`
+//
+// Prefix   Error type: e = build-in errors, f = srvc/fail, p = pkg/errors
+// |        |
+// errFunc 0e 1p 2p 3fg 4f
+// ^^^^^^^ |          |
+//         Depth      Goroutine involved
+//
+// errors -> pkg/errors -> pkg/errors -> fail (goroutine) -> fail
+
+func errFunc0e() error {
+	return errors.New("0e")
+}
+func errFunc0e1p() error {
+	return pkgerrors.Wrap(errFunc0e(), "1p")
+}
+func errFunc0e1p2p() error {
+	return pkgerrors.Wrap(errFunc0e1p(), "2p")
+}
+func errFunc0e1p2p3f() error {
+	return Wrap(errFunc0e1p2p())
+}
+func errFunc0e1p2p3f4f() error {
+	return Wrap(errFunc0e1p2p3f(), WithMessage("4f"), WithCode(500), WithIgnorable())
+}
+
+func errFunc0e1p2p3fg() chan error {
+	c := make(chan error)
+	go func() {
+		c <- Wrap(errFunc0e1p2p())
+	}()
+	return c
+}
+func errFunc0e1p2p3fg4f() error {
+	return Wrap(<-errFunc0e1p2p3fg(), WithMessage("4f"), WithCode(500), WithIgnorable())
+}
+func errFunc0e1p2p3fg4f5p() error {
+	return pkgerrors.Wrap(errFunc0e1p2p3fg4f(), "5p")
+}
+
+func errFunc0e1p2p3pg() chan error {
+	c := make(chan error)
+	go func() {
+		c <- pkgerrors.Wrap(errFunc0e1p2p(), "3pg")
+	}()
+	return c
+}
+func errFunc0e1p2p3pg4p() error {
+	return pkgerrors.Wrap(<-errFunc0e1p2p3pg(), "4p")
+}
+
+func errFunc0e1p2p3f4p() error {
+	return pkgerrors.Wrap(errFunc0e1p2p3f(), "4p")
 }
