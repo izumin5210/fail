@@ -297,29 +297,29 @@ import (
 // ReportError handles an error, changes status code based on the error,
 // and reports to an external service if necessary
 func ReportError(c *gin.Context, err error) {
-	appErr := fail.Unwrap(err)
-	if appErr == nil {
+	failErr := fail.Unwrap(err)
+	if failErr == nil {
 		// As it's a "raw" error, `StackTrace` field left unset.
 		// And it should be always reported
-		appErr = &fail.Error{
+		failErr = &fail.Error{
 			Err: err,
 		}
 	}
 
-	convertAppError(appErr)
+	convertFailError(failErr)
 
 	// Send the error to an external service
-	if !appErr.Ignorable {
-		go uploadAppError(c.Copy(), appErr)
+	if !failErr.Ignorable {
+		go uploadFailError(c.Copy(), failErr)
 	}
 
 	// Expose an error message in the header
-	if msg := appErr.LastMessage(); msg != "" {
+	if msg := failErr.LastMessage(); msg != "" {
 		c.Header("X-App-Error", msg)
 	}
 
 	// Set status code accordingly
-	switch code := appErr.Code.(type) {
+	switch code := failErr.Code.(type) {
 	case int:
 		c.Status(code)
 	default:
@@ -327,7 +327,7 @@ func ReportError(c *gin.Context, err error) {
 	}
 }
 
-func convertAppError(err *fail.Error) {
+func convertFailError(err *fail.Error) {
 	// If the error is from ORM and it says "no record found,"
 	// override status code to 404
 	if err.Err == gorm.ErrRecordNotFound {
@@ -336,7 +336,7 @@ func convertAppError(err *fail.Error) {
 	}
 }
 
-func uploadAppError(c *gin.Context, err *fail.Error) {
+func uploadFailError(c *gin.Context, err *fail.Error) {
 	// By using readbody, you can retrive an original request body
 	// even when c.Request.Body had been read
 	body := readbody.Get(c)
