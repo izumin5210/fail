@@ -36,14 +36,6 @@ func TestError_LastMessage(t *testing.T) {
 	assert.Equal(t, "message 2", err.LastMessage())
 }
 
-func TestError_FullMessage(t *testing.T) {
-	err := &Error{
-		Err:      errors.New("err"),
-		Messages: []string{"message 2", "message 1"},
-	}
-	assert.Equal(t, err.Error(), err.FullMessage())
-}
-
 func TestWithMessage(t *testing.T) {
 	t.Run("nil", func(t *testing.T) {
 		err := Wrap(nil, WithMessage("message"))

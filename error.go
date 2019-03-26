@@ -74,12 +74,6 @@ func (e *Error) LastMessage() string {
 	return e.Messages[0]
 }
 
-// FullMessage is marked as deprecated in favor of `Error`.
-// This method will be removed in the next major release.
-func (e *Error) FullMessage() string {
-	return e.Error()
-}
-
 // Wrap returns an error annotated with a stack trace from the point it was called,
 // and with the specified annotators.
 // It returns nil if err is nil.
