@@ -12,6 +12,8 @@ branches:
 
 env:
   global:
+    - GO111MODULE=on
+
     # CODECOV_TOKEN
     - secure: "0eWuB+duerrzTHke7+4RUHrzu25nCzU+7YkmfW9KPOWpAxsL8BZ2OK1kGNzy3Kfh3GBWQa7iaz6s8Ro5DOEVncjgrze3DDcGYOzvLjSolIoqTPZoIiIvZ6eSyNvDolWyaucA6XrEzLdbv1objUd7KX4T8y+ZgCDQ7ymY7BgQWP1nfekNrhpr/wpXzHq9Urd8b3racDaKBw7ZNBOTbR/MwP82lr0YJONCrKjqfphCpiymYcIHL4n25gstkh/Ukri4l5kD41sm83fibvtYXalqDgLHjVkkNxeuE4cbjFbB0Sia9iQcCcJW/9cMlmyCJfoC1Ds/jVIvKuQGPEXd3W+/wZ+TRMvNMYNn2JP7gw/HmvFtEh24MenWsGQmiybYrZg3+nCwManUHO3xiKrX6sHqOQTm/F/dErSVawZ79/mugYbGCx3gpz5Jz4JHOliGFJl0CXDrOY6aAKvmNpED6uk9Yzi06wLPh9YyT+BUIuplY14ewUQlfGwEvgapCiYmDwnoi4MUc/0C6+aG0R0LmC6xIyMW278tPdjFwUbgGC+AE+Tfxc304tSw2foLZ+SzcKkCUmlxnZObE8ZEx7Kwa2lFKZ+kTNMz0Yi+fKZJ6rAVV8xHlLB33RuTdLrTCyBqqLynFjeRvZpV1wHNQFuKeQL0wX6yPWwBdlMASuwSSyGDTLE="
 
@@ -21,9 +23,6 @@ cache:
 
 before_install:
   - go get -u golang.org/x/lint/golint
-
-install:
-  - go get -t -u ./...
 
 script:
   - make ci-test
