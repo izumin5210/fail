@@ -2,6 +2,7 @@ package fail
 
 import (
 	"errors"
+	"strings"
 	"testing"
 
 	pkgerrors "github.com/pkg/errors"
@@ -17,6 +18,13 @@ func TestExtractPkgError(t *testing.T) {
 
 	t.Run("not a pkg/errors", func(t *testing.T) {
 		pkgErr := extractPkgError(errors.New("error"))
+		assert.Nil(t, pkgErr)
+	})
+
+	t.Run("slice error", func(t *testing.T) {
+		err := errorSlice{errors.New("error")}
+
+		pkgErr := extractPkgError(err)
 		assert.Nil(t, pkgErr)
 	})
 
@@ -83,6 +91,16 @@ func TestExtractPkgError(t *testing.T) {
 			assert.Equal(t, err0, pkgErr.Err)
 			assert.NotEmpty(t, pkgErr.StackTrace)
 			assert.Equal(t, "pkgErrorsWrap", pkgErr.StackTrace[0].Func)
+		})
+
+		t.Run("with slice error", func(t *testing.T) {
+			err0 := errorSlice{errors.New("error")}
+			err1 := pkgErrorsWrap(err0, "message")
+
+			pkgErr := extractPkgError(err1)
+			assert.NotNil(t, pkgErr)
+			assert.Equal(t, err0, pkgErr.Err)
+			assert.NotEmpty(t, pkgErr.StackTrace)
 		})
 	})
 
@@ -155,4 +173,14 @@ func pkgErrorsNew(msg string) error {
 
 func pkgErrorsWrap(err error, msg string) error {
 	return pkgerrors.Wrap(err, msg)
+}
+
+type errorSlice []error
+
+func (s errorSlice) Error() string {
+	msg := make([]string, len(s))
+	for i, e := range s {
+		msg[i] = e.Error()
+	}
+	return strings.Join(msg, ": ")
 }
