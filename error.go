@@ -74,6 +74,9 @@ func (e *Error) LastMessage() string {
 	return e.Messages[0]
 }
 
+// Unwrap provides compatibility for Go 1.13 error chains.
+func (e *Error) Unwrap() error { return e.Err }
+
 // Wrap returns an error annotated with a stack trace from the point it was called,
 // and with the specified annotators.
 // It returns nil if err is nil.
