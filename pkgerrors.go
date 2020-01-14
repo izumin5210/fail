@@ -86,7 +86,7 @@ func extractPkgError(err error) *pkgError {
 			if rootErr == err {
 				return nil
 			}
-		} else if reflect.DeepEqual(rootErr, err) {
+		} else {
 			return nil
 		}
 	}
