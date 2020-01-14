@@ -1,6 +1,7 @@
 package fail
 
 import (
+	"reflect"
 	"strings"
 
 	pkgerrors "github.com/pkg/errors"
@@ -79,8 +80,15 @@ func extractPkgError(err error) *pkgError {
 		break
 	}
 
-	if len(stackTraces) == 0 && rootErr == err {
-		return nil
+	if len(stackTraces) == 0 {
+		ret, et := reflect.TypeOf(rootErr), reflect.TypeOf(err)
+		if ret != nil && et != nil && ret.Comparable() && et.Comparable() {
+			if rootErr == err {
+				return nil
+			}
+		} else {
+			return nil
+		}
 	}
 
 	// Extract annotated messages by removing the trailing message.
