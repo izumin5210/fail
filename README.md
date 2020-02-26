@@ -183,7 +183,7 @@ import (
 	"errors"
 
 	"github.com/k0kubun/pp"
-	"github.com/srvc/fail"
+	"github.com/srvc/fail/v4"
 )
 
 var myErr = fail.New("this is the root cause")
@@ -285,7 +285,7 @@ package middleware
 import (
 	"net/http"
 
-	"github.com/srvc/fail"
+	"github.com/srvc/fail/v4"
 	"github.com/creasty/gin-contrib/readbody"
 	"github.com/gin-gonic/gin"
 
