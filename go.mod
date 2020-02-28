@@ -1,4 +1,4 @@
-module github.com/srvc/fail
+module github.com/srvc/fail/v4
 
 go 1.13
 
